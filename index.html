@@ -57,14 +57,6 @@
             margin-bottom: 30px;
         }
 
-        #user-info {
-            background: #e8f4fd;
-            padding: 10px 15px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            font-size: 14px;
-        }
-
         .logout-btn {
             background: #dc3545;
             color: white;
@@ -73,7 +65,7 @@
             border-radius: 8px;
             cursor: pointer;
             font-size: 12px;
-            margin-top: 10px;
+            margin-left: 10px;
         }
 
         .logout-btn:hover {
@@ -87,7 +79,6 @@
             margin: 0 auto;
         }
 
-        /* Your existing styles continue here */
         .header {
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
             color: white;
@@ -105,6 +96,9 @@
             padding: 8px 16px;
             border-radius: 20px;
             font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
         .tabs {
@@ -112,6 +106,7 @@
             gap: 10px;
             flex-wrap: wrap;
             margin-bottom: 20px;
+            overflow-x: auto;
         }
 
         .tab-btn {
@@ -136,19 +131,69 @@
             padding: 20px;
             box-shadow: 0 5px 15px rgba(0,0,0,0.1);
             display: none;
+            overflow-x: auto;
         }
 
         .form-container.active {
             display: block;
         }
 
-        /* Form elements */
+        h2 {
+            color: #1a1a2e;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #1a1a2e;
+        }
+
+        h3 {
+            color: #16213e;
+            margin: 20px 0 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            font-size: 14px;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+            vertical-align: top;
+        }
+
+        th {
+            background: #1a1a2e;
+            color: white;
+        }
+
+        tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+
         input, select, textarea {
             width: 100%;
-            padding: 10px;
-            margin: 5px 0 15px;
+            padding: 8px;
+            margin: 5px 0;
             border: 1px solid #ddd;
-            border-radius: 8px;
+            border-radius: 5px;
+        }
+
+        input[type="checkbox"] {
+            width: auto;
+            transform: scale(1.2);
+        }
+
+        .status-good {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-action {
+            background: #f8d7da;
+            color: #721c24;
         }
 
         button.submit-btn {
@@ -159,7 +204,11 @@
             border-radius: 8px;
             cursor: pointer;
             font-size: 16px;
-            margin-top: 10px;
+            margin-top: 20px;
+        }
+
+        button.submit-btn:hover {
+            background: #218838;
         }
 
         .toast {
@@ -174,9 +223,30 @@
             z-index: 1000;
         }
 
+        .production-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .prod-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+        }
+
+        .prod-card label {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 5px;
+        }
+
         @media (max-width: 768px) {
             .tab-btn { padding: 8px 16px; font-size: 12px; }
             .header { flex-direction: column; text-align: center; gap: 10px; }
+            th, td { padding: 5px; font-size: 11px; }
+            .form-container { padding: 10px; }
         }
     </style>
 </head>
@@ -221,34 +291,122 @@
         <button class="tab-btn" onclick="switchTab('records')">📁 Records</button>
     </div>
 
-    <!-- Form containers (simplified - you'll add your full forms here) -->
+    <!-- ========== PRE-START FORM ========== -->
     <div id="prestart" class="form-container active">
-        <h2>Pre-Start Checklist</h2>
-        <p>Your full pre-start form content goes here.</p>
-        <button class="submit-btn" onclick="saveForm('prestart')">Submit Form</button>
+        <h2>✅ APP Pre-Start Checklist</h2>
+        <p>Complete before each shift start. All items must be inspected.</p>
+        
+        <h3>📋 Shift Information</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
+            <div><label>📅 Date:</label><input type="date" id="ps-date"></div>
+            <div><label>🕒 Shift:</label><select id="ps-shift"><option>Day Shift (07:00-19:00)</option><option>Night Shift (19:00-07:00)</option></select></div>
+            <div><label>👨‍💼 Supervisor/Inspector:</label><input type="text" id="ps-supervisor" placeholder="Name"></div>
+            <div><label>📝 General Remarks:</label><input type="text" id="ps-remarks" placeholder="Any issues noted"></div>
+        </div>
+        
+        <h3>🔍 Inspection Items</h3>
+        <div style="overflow-x: auto;">
+            <table id="prestart-table">
+                <thead>
+                    <tr><th>Area</th><th>Equipment / Item</th><th>Inspection Point</th><th>Status</th><th>Remarks</th></tr>
+                </thead>
+                <tbody id="prestart-body"></tbody>
+            </table>
+        </div>
+        <button class="submit-btn" onclick="saveForm('prestart')">✅ Submit Pre-Start Checklist</button>
     </div>
 
+    <!-- ========== HOUSEKEEPING FORM ========== -->
     <div id="housekeeping" class="form-container">
-        <h2>Housekeeping Inspection</h2>
-        <p>Your full housekeeping form content goes here.</p>
-        <button class="submit-btn" onclick="saveForm('housekeeping')">Submit Form</button>
+        <h2>🧹 Housekeeping Inspection Sheet</h2>
+        <p>Post-shift housekeeping verification for all plant areas.</p>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
+            <div><label>📅 Date:</label><input type="date" id="hk-date"></div>
+            <div><label>🕒 Shift:</label><select id="hk-shift"><option>Day Shift</option><option>Night Shift</option></select></div>
+            <div><label>👨‍💼 Inspector:</label><input type="text" id="hk-inspector" placeholder="Name"></div>
+        </div>
+        
+        <div style="overflow-x: auto;">
+            <table id="housekeeping-table">
+                <thead><tr><th>Area</th><th>Equipment</th><th>Task</th><th>Status</th><th>Comments</th><th>Follow-Up</th></tr></thead>
+                <tbody id="housekeeping-body"></tbody>
+            </table>
+        </div>
+        <button class="submit-btn" onclick="saveForm('housekeeping')">✅ Submit Housekeeping Report</button>
     </div>
 
+    <!-- ========== HANDOVER FORM ========== -->
     <div id="handover" class="form-container">
-        <h2>Shift Handover Record</h2>
-        <p>Your full handover form content goes here.</p>
-        <button class="submit-btn" onclick="saveForm('handover')">Submit Form</button>
+        <h2>📋 Plant Shift Handover Record</h2>
+        <p>Complete at end of each shift before handover to incoming supervisor.</p>
+        
+        <h3>👷 Operator Attendance</h3>
+        <div id="operator-list" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin-bottom: 20px;"></div>
+        
+        <h3>📊 Production Summary</h3>
+        <div class="production-grid">
+            <div class="prod-card"><label>Ore Processed (tons):</label><input type="number" id="ho-ore" step="any"></div>
+            <div class="prod-card"><label>Concentrate Produced (kg):</label><input type="number" id="ho-concentrate" step="any"></div>
+            <div class="prod-card"><label>Tailings Produced (tons):</label><input type="number" id="ho-tailings" step="any"></div>
+            <div class="prod-card"><label>Water Consumption (m³):</label><input type="number" id="ho-water" step="any"></div>
+        </div>
+        
+        <h3>⚙️ Equipment Performance</h3>
+        <div style="overflow-x: auto;">
+            <table id="equipment-table"><thead><tr><th>Equipment</th><th>Status</th><th>Observations / Remarks</th></tr></thead><tbody></tbody></table>
+        </div>
+        
+        <h3>🦺 Safety / Incident Report</h3>
+        <textarea id="ho-safety" rows="3" style="width:100%" placeholder="Any safety incidents, near misses, or observations..."></textarea>
+        
+        <h3>✍️ Shift Handover Sign-Off</h3>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+            <div><label>Outgoing Supervisor:</label><input type="text" id="ho-outgoing"></div>
+            <div><label>Incoming Supervisor:</label><input type="text" id="ho-incoming"></div>
+        </div>
+        <button class="submit-btn" onclick="saveForm('handover')">✅ Submit Handover Record</button>
     </div>
 
+    <!-- ========== PROCESS LOG FORM ========== -->
     <div id="processlog" class="form-container">
-        <h2>Process Log Sheet</h2>
-        <p>Your full process log form content goes here.</p>
-        <button class="submit-btn" onclick="saveForm('processlog')">Submit Form</button>
+        <h2>📊 APP Process Log Sheet</h2>
+        <p>Hourly process data entry for day and night shifts.</p>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 20px;">
+            <div><label>📅 Date:</label><input type="date" id="pl-date"></div>
+            <div><label>🕒 Shift:</label><select id="pl-shift"><option>Day Shift</option><option>Night Shift</option></select></div>
+            <div><label>👨‍💼 Data Entered By:</label><input type="text" id="pl-operator"></div>
+        </div>
+        
+        <h3>📊 Shift Totals</h3>
+        <div class="production-grid">
+            <div class="prod-card"><label>Total Feed (tons):</label><input type="number" id="pl-total-feed" step="any"></div>
+            <div class="prod-card"><label>Total Concentrate (kg):</label><input type="number" id="pl-total-conc" step="any"></div>
+            <div class="prod-card"><label>Total Runtime (hrs):</label><input type="number" id="pl-runtime" step="0.1"></div>
+            <div class="prod-card"><label>Avg Recovery (%):</label><input type="number" id="pl-recovery" step="any"></div>
+        </div>
+        
+        <h3>⏱️ Hourly Process Log</h3>
+        <div style="overflow-x: auto;">
+            <table id="hourly-table">
+                <thead><tr><th>Time</th><th>Grizzly Speed (%)</th><th>Feed to Trommel (t/h)</th><th>Jig RPM</th><th>PW Manifold (psi)</th><th>Fresh Water Level</th><th>Density to ST</th></tr></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+        
+        <h3>🔧 Downtime Records</h3>
+        <div id="downtime-entries"></div>
+        <button onclick="addDowntimeRow()" style="margin:10px 0; padding:5px 10px;">+ Add Downtime Entry</button>
+        
+        <button class="submit-btn" onclick="saveForm('processlog')">✅ Submit Process Log</button>
     </div>
 
+    <!-- ========== RECORDS ========== -->
     <div id="records" class="form-container">
-        <h2>Submitted Records</h2>
+        <h2>📁 Submitted Records</h2>
         <div id="records-list">No records submitted yet.</div>
+        <button onclick="exportToCSV()" style="margin-top:20px; background:#17a2b8; color:white; border:none; padding:10px 20px; border-radius:8px;">📥 Export to CSV</button>
     </div>
 </div>
 
@@ -257,7 +415,7 @@
 <script>
     // ========== GOOGLE LOGIN CONFIGURATION ==========
     
-    // List of authorized emails (only these can access)
+    // List of authorized emails
     const authorizedEmails = [
         'ri@h5r.ltd',
         'rn@h5r.ltd',
@@ -269,14 +427,12 @@
     
     // Google Login Callback
     window.handleGoogleLogin = function(response) {
-        // Decode the JWT token to get user info
         const payload = parseJwt(response.credential);
         
         if (payload && payload.email) {
             const userEmail = payload.email;
             const userName = payload.name || userEmail;
             
-            // Check if email is authorized
             if (authorizedEmails.includes(userEmail.toLowerCase())) {
                 currentUser = {
                     email: userEmail,
@@ -284,26 +440,20 @@
                     picture: payload.picture
                 };
                 
-                // Show main app
                 document.getElementById('login-overlay').style.display = 'none';
                 document.getElementById('app-content').style.display = 'block';
-                document.getElementById('user-email').innerText = userEmail;
+                document.getElementById('user-email').innerHTML = `${userEmail} <button class="logout-btn" onclick="logout()">Sign Out</button>`;
                 
                 showToast('Welcome, ' + userName + '!');
-                
-                // Load any saved records from localStorage
                 loadLocalRecords();
+                initializeForms();
             } else {
-                // Unauthorized access
                 showToast('Access Denied: ' + userEmail + ' is not authorized.', true);
-                setTimeout(() => {
-                    logout();
-                }, 2000);
+                setTimeout(() => logout(), 2000);
             }
         }
     };
     
-    // Helper: Parse JWT token
     function parseJwt(token) {
         try {
             const base64Url = token.split('.')[1];
@@ -317,49 +467,141 @@
         }
     }
     
-    // Logout function
     window.logout = function() {
         currentUser = null;
         document.getElementById('login-overlay').style.display = 'flex';
         document.getElementById('app-content').style.display = 'none';
-        
-        // Clear any stored session
         sessionStorage.clear();
     };
     
-    // ========== FORM FUNCTIONS ==========
+    // ========== INITIALIZE FORM DATA ==========
     
-    function switchTab(tabName) {
-        // Hide all forms
-        const forms = ['prestart', 'housekeeping', 'handover', 'processlog', 'records'];
-        forms.forEach(form => {
-            document.getElementById(form).classList.remove('active');
+    const prestartItems = [
+        { area: "SAFETY", equipment: "PPE Compliance", point: "Operators in proper PPE gear" },
+        { area: "SAFETY", equipment: "Walkways and Railings", point: "Clear of obstruction, structural integrity" },
+        { area: "AREA 100", equipment: "Feed Stockpile", point: "Sufficient for a full run" },
+        { area: "AREA 100", equipment: "Back Hoe and Driver", point: "Availability" },
+        { area: "AREA 100", equipment: "Vibrating Grizzly Feeder", point: "Structural Integrity, no broken bars, no blockages" },
+        { area: "AREA 100", equipment: "Trommel Feed Conveyor", point: "Structural integrity, greased, NO wear and tear" },
+        { area: "AREA 100", equipment: "Trommel Scrubber", point: "Structural integrity, no blockages, tire pressure, greased" },
+        { area: "AREA 100", equipment: "Trommel Oversize Conveyor", point: "Structural integrity, greased, wear and tear" },
+        { area: "AREA 200", equipment: "Jig Separators", point: "Structural integrity, pulsation, water flow, no abnormal noise" },
+        { area: "AREA 200", equipment: "Back Wash Water Pumps", point: "Greased, abnormal noise, water flow, pipes" },
+        { area: "AREA 300", equipment: "Concentrate Dewatering Screen", point: "Integrity, wear and tear, vibration amplitude" },
+        { area: "AREA 300", equipment: "Concentrate Slurry Pump", point: "Functional, V-belt condition, pipes and supports" },
+        { area: "AREA 300", equipment: "Impact Crusher", point: "No blockages, integrity, no leakages" },
+        { area: "AREA 300", equipment: "Cyclone Separator", point: "Underflow spigot no blockages, no leakages" },
+        { area: "AREA 300", equipment: "Shaking Tables", point: "No material spillages, functional, stroke length" },
+        { area: "AREA 300", equipment: "Table Tailings and Midlings Pumps", point: "No blockages, functional VSDs" },
+        { area: "AREA 400", equipment: "Spiral Classifier", point: "No loose bolts, greased, pipework, functional" },
+        { area: "AREA 400", equipment: "Tailings Dewatering Screen", point: "Structural integrity, vibration amplitude" },
+        { area: "AREA 400", equipment: "Tailings Conveyors", point: "Structural integrity, greased, no wear and tear" },
+        { area: "AREA 600", equipment: "Slimes Pond", point: "Erosion spots, warning tape, water level" },
+        { area: "AREA 700", equipment: "Process Water Pond", point: "Water level, erosion points, pipes no leakages" },
+        { area: "AREA 700", equipment: "Process Water Pump", point: "Fuel at least 80L, oil level" },
+        { area: "AREA 800", equipment: "Fresh Water Tanks", point: "Water level Full, functional valves" }
+    ];
+    
+    const housekeepingTasks = [
+        { area: "100", equipment: "Grizzly Feeder", task: "Remove dust and material spillages" },
+        { area: "100", equipment: "Trommel Scrubber", task: "Clean build-up and sweep area" },
+        { area: "200", equipment: "Jigs", task: "Remove settled solids, clean slabs" },
+        { area: "300", equipment: "Slurry Pumps", task: "Clean area around pumps, inspect leaks" },
+        { area: "300", equipment: "Shaking Tables", task: "Clean deck surfaces and slabs, clean magnet" },
+        { area: "400", equipment: "Tailings Launders & Conveyors", task: "Clean stockyards and inspect access" },
+        { area: "500", equipment: "Magnetic Separator", task: "Wipe clean and check chute clearance" },
+        { area: "600", equipment: "Return Water Pump & Pond", task: "Clear fuel and oil leak pans" },
+        { area: "900", equipment: "MCC", task: "Tidy and disinfect" },
+        { area: "General", equipment: "Walkways & Access Routes", task: "Sweep, remove obstructions, pick plastics" }
+    ];
+    
+    const equipmentList = ["Jigs", "Crushers", "Shaking Tables", "Pumps", "Screens", "Conveyors"];
+    const operators = ["Operator 1", "Operator 2", "Operator 3", "Operator 4", "Operator 5", "Operator 6", "Operator 7", "Operator 8", "Operator 9", "Operator 10", "Operator 11", "Operator 12", "Operator 13", "Operator 14"];
+    const hourlySlots = ["07h00-08h00", "08h00-09h00", "09h00-10h00", "10h00-11h00", "11h00-12h00", "12h00-13h00", "13h00-14h00", "14h00-15h00", "15h00-16h00", "16h00-17h00", "17h00-18h00", "18h00-19h00"];
+    
+    function initializeForms() {
+        // Pre-start table
+        const tbody = document.getElementById('prestart-body');
+        tbody.innerHTML = '';
+        prestartItems.forEach((item, idx) => {
+            const row = tbody.insertRow();
+            row.insertCell(0).innerHTML = item.area;
+            row.insertCell(1).innerHTML = item.equipment;
+            row.insertCell(2).innerHTML = item.point;
+            row.insertCell(3).innerHTML = `<select class="ps-status" data-idx="${idx}"><option value="OK">✅ OK</option><option value="Action Required">⚠️ Action Required</option><option value="N/A">➖ N/A</option></select>`;
+            row.insertCell(4).innerHTML = `<input type="text" class="ps-remark" data-idx="${idx}" placeholder="Remarks">`;
         });
-        // Show selected
-        document.getElementById(tabName).classList.add('active');
         
-        // Update button styles
-        const btns = document.querySelectorAll('.tab-btn');
-        btns.forEach(btn => btn.classList.remove('active'));
-        event.target.classList.add('active');
+        // Housekeeping table
+        const hkBody = document.getElementById('housekeeping-body');
+        hkBody.innerHTML = '';
+        housekeepingTasks.forEach((task, idx) => {
+            const row = hkBody.insertRow();
+            row.insertCell(0).innerHTML = task.area;
+            row.insertCell(1).innerHTML = task.equipment;
+            row.insertCell(2).innerHTML = task.task;
+            row.insertCell(3).innerHTML = `<select class="hk-status"><option>✅ Satisfactory</option><option>⚠️ Needs Attention</option><option>❌ Unsatisfactory</option></select>`;
+            row.insertCell(4).innerHTML = `<input type="text" class="hk-comment" placeholder="Comments">`;
+            row.insertCell(5).innerHTML = `<input type="text" class="hk-followup" placeholder="Follow-up action">`;
+        });
+        
+        // Operators attendance
+        const opContainer = document.getElementById('operator-list');
+        opContainer.innerHTML = '';
+        operators.forEach(op => {
+            opContainer.innerHTML += `<label style="display:flex; align-items:center; gap:5px;"><input type="checkbox" class="operator-check" value="${op}"> ${op}</label>`;
+        });
+        
+        // Equipment table
+        const equipBody = document.querySelector('#equipment-table tbody');
+        equipBody.innerHTML = '';
+        equipmentList.forEach(equip => {
+            const row = equipBody.insertRow();
+            row.insertCell(0).innerHTML = equip;
+            row.insertCell(1).innerHTML = `<select class="equip-status"><option>✅ Operational</option><option>⚠️ Minor Issues</option><option>❌ Down/Major Issues</option><option>➖ Not Used</option></select>`;
+            row.insertCell(2).innerHTML = `<input type="text" class="equip-remark" placeholder="Observations">`;
+        });
+        
+        // Hourly log table
+        const hourlyBody = document.querySelector('#hourly-table tbody');
+        hourlyBody.innerHTML = '';
+        hourlySlots.forEach(slot => {
+            const row = hourlyBody.insertRow();
+            row.insertCell(0).innerHTML = slot;
+            row.insertCell(1).innerHTML = `<input type="text" class="hourly-grizzly" placeholder="%">`;
+            row.insertCell(2).innerHTML = `<input type="text" class="hourly-feed" placeholder="t/h">`;
+            row.insertCell(3).innerHTML = `<input type="text" class="hourly-jig" placeholder="RPM">`;
+            row.insertCell(4).innerHTML = `<input type="text" class="hourly-pressure" placeholder="psi">`;
+            row.insertCell(5).innerHTML = `<input type="text" class="hourly-water" placeholder="Level">`;
+            row.insertCell(6).innerHTML = `<input type="text" class="hourly-density" placeholder="Density">`;
+        });
+        
+        // Set default date
+        const today = new Date().toISOString().split('T')[0];
+        document.querySelectorAll('input[type="date"]').forEach(el => { if(!el.value) el.value = today; });
     }
     
-    function showToast(message, isError = false) {
-        const toast = document.getElementById('toast');
-        toast.textContent = message;
-        toast.style.backgroundColor = isError ? '#dc3545' : '#28a745';
-        toast.style.display = 'block';
-        setTimeout(() => {
-            toast.style.display = 'none';
-        }, 3000);
-    }
+    let downtimeCount = 0;
+    window.addDowntimeRow = function() {
+        const container = document.getElementById('downtime-entries');
+        const div = document.createElement('div');
+        div.style.display = 'grid';
+        div.style.gridTemplateColumns = 'repeat(5, 1fr)';
+        div.style.gap = '5px';
+        div.style.marginBottom = '5px';
+        div.innerHTML = `
+            <input type="time" placeholder="Stop Time">
+            <input type="time" placeholder="Start Time">
+            <input type="text" placeholder="D/T (hrs)">
+            <input type="text" placeholder="Equipment ID">
+            <input type="text" placeholder="Description">
+        `;
+        container.appendChild(div);
+    };
     
-    function saveForm(type) {
-        if (!currentUser) {
-            showToast('Please sign in first', true);
-            return;
-        }
-        
+    // ========== SAVE FORM ==========
+    
+    function collectFormData(type) {
         const now = new Date();
         const record = {
             type: type,
@@ -368,20 +610,112 @@
             submittedByName: currentUser.name
         };
         
-        // Add your form-specific data collection here
-        // For now, just a sample
-        record.sampleData = "Form submitted at " + now.toLocaleTimeString();
+        if (type === 'prestart') {
+            record.date = document.getElementById('ps-date').value;
+            record.shift = document.getElementById('ps-shift').value;
+            record.supervisor = document.getElementById('ps-supervisor').value;
+            record.remarks = document.getElementById('ps-remarks').value;
+            record.items = [];
+            document.querySelectorAll('#prestart-body tr').forEach((row, i) => {
+                if (i < prestartItems.length) {
+                    record.items.push({
+                        equipment: prestartItems[i].equipment,
+                        status: row.querySelector('.ps-status')?.value,
+                        remark: row.querySelector('.ps-remark')?.value
+                    });
+                }
+            });
+        } else if (type === 'housekeeping') {
+            record.date = document.getElementById('hk-date').value;
+            record.shift = document.getElementById('hk-shift').value;
+            record.inspector = document.getElementById('hk-inspector').value;
+            record.tasks = [];
+            document.querySelectorAll('#housekeeping-body tr').forEach((row, i) => {
+                if (i < housekeepingTasks.length) {
+                    record.tasks.push({
+                        equipment: housekeepingTasks[i].equipment,
+                        status: row.querySelector('.hk-status')?.value,
+                        comment: row.querySelector('.hk-comment')?.value,
+                        followup: row.querySelector('.hk-followup')?.value
+                    });
+                }
+            });
+        } else if (type === 'handover') {
+            record.attendance = Array.from(document.querySelectorAll('.operator-check:checked')).map(cb => cb.value);
+            record.ore = document.getElementById('ho-ore').value;
+            record.concentrate = document.getElementById('ho-concentrate').value;
+            record.tailings = document.getElementById('ho-tailings').value;
+            record.water = document.getElementById('ho-water').value;
+            record.safety = document.getElementById('ho-safety').value;
+            record.outgoing = document.getElementById('ho-outgoing').value;
+            record.incoming = document.getElementById('ho-incoming').value;
+            record.equipment = [];
+            document.querySelectorAll('#equipment-table tbody tr').forEach(row => {
+                record.equipment.push({
+                    name: row.cells[0].innerText,
+                    status: row.querySelector('.equip-status')?.value,
+                    remark: row.querySelector('.equip-remark')?.value
+                });
+            });
+        } else if (type === 'processlog') {
+            record.date = document.getElementById('pl-date').value;
+            record.shift = document.getElementById('pl-shift').value;
+            record.operator = document.getElementById('pl-operator').value;
+            record.totalFeed = document.getElementById('pl-total-feed').value;
+            record.totalConcentrate = document.getElementById('pl-total-conc').value;
+            record.runtime = document.getElementById('pl-runtime').value;
+            record.recovery = document.getElementById('pl-recovery').value;
+            record.hourly = [];
+            document.querySelectorAll('#hourly-table tbody tr').forEach(row => {
+                record.hourly.push({
+                    time: row.cells[0].innerText,
+                    grizzly: row.querySelector('.hourly-grizzly')?.value,
+                    feed: row.querySelector('.hourly-feed')?.value,
+                    jig: row.querySelector('.hourly-jig')?.value,
+                    pressure: row.querySelector('.hourly-pressure')?.value,
+                    water: row.querySelector('.hourly-water')?.value,
+                    density: row.querySelector('.hourly-density')?.value
+                });
+            });
+            record.downtimes = [];
+            document.querySelectorAll('#downtime-entries > div').forEach(div => {
+                const inputs = div.querySelectorAll('input');
+                if (inputs[0]?.value) {
+                    record.downtimes.push({
+                        stopTime: inputs[0].value,
+                        startTime: inputs[1].value,
+                        duration: inputs[2].value,
+                        equipment: inputs[3].value,
+                        description: inputs[4].value
+                    });
+                }
+            });
+        }
         
-        // Save locally
+        return record;
+    }
+    
+    window.saveForm = function(type) {
+        if (!currentUser) {
+            showToast('Please sign in first', true);
+            return;
+        }
+        
+        const record = collectFormData(type);
         records.unshift(record);
         saveLocalRecords();
         updateRecordsDisplay();
+        showToast(type.replace('prestart','Pre-Start').replace('handover','Handover').replace('processlog','Process Log').replace('housekeeping','Housekeeping') + ' submitted by ' + currentUser.name);
         
-        showToast(type + ' form submitted successfully by ' + currentUser.name);
-        
-        // TODO: Send to Google Sheets (add your script URL here)
+        // Optional: Send to Google Sheets
         // const scriptURL = "YOUR_GOOGLE_APPS_SCRIPT_URL";
-        // fetch(scriptURL, { method: 'POST', body: JSON.stringify(record), ... })
+        // fetch(scriptURL, { method: 'POST', body: JSON.stringify(record), headers: {'Content-Type':'application/json'} });
+    };
+    
+    function saveLocalRecords() {
+        if (currentUser) {
+            localStorage.setItem('h5r_records_' + currentUser.email, JSON.stringify(records));
+        }
     }
     
     function loadLocalRecords() {
@@ -392,39 +726,59 @@
         }
     }
     
-    function saveLocalRecords() {
-        if (currentUser) {
-            localStorage.setItem('h5r_records_' + currentUser.email, JSON.stringify(records));
-        }
-    }
-    
     function updateRecordsDisplay() {
         const container = document.getElementById('records-list');
         if (!container) return;
-        
         if (records.length === 0) {
             container.innerHTML = '<p>No records submitted yet.</p>';
             return;
         }
-        
-        let html = '<div style="overflow-x:auto;"><table border="1" style="width:100%; border-collapse:collapse;">';
-        html += '<tr><th>Time</th><th>Form Type</th><th>Submitted By</th></tr>';
+        let html = '<div style="overflow-x:auto;"><table border="1" style="width:100%; border-collapse:collapse;"><tr><th>Time</th><th>Form Type</th><th>Submitted By</th><th>Details</th></tr>';
         records.forEach(rec => {
-            html += `<tr>
-                        <td>${rec.timestamp}</td>
-                        <td>${rec.type}</td>
-                        <td>${rec.submittedBy}</td>
-                     </tr>`;
+            let details = '';
+            if (rec.ore) details = `Ore: ${rec.ore}t, Conc: ${rec.concentrate}kg`;
+            else if (rec.items) details = `${rec.items.length} items checked`;
+            else if (rec.runtime) details = `Runtime: ${rec.runtime}hrs`;
+            else details = 'Submitted';
+            html += `<tr><td>${rec.timestamp}</td><td>${rec.type}</td><td>${rec.submittedBy}</td><td>${details}</td></tr>`;
         });
         html += '</table></div>';
         container.innerHTML = html;
     }
     
-    // Make functions global
-    window.switchTab = switchTab;
-    window.saveForm = saveForm;
-    window.showToast = showToast;
+    window.exportToCSV = function() {
+        if (records.length === 0) {
+            showToast('No records to export', true);
+            return;
+        }
+        let csv = "Timestamp,Form Type,Submitted By,Data\n";
+        records.forEach(rec => {
+            csv += `"${rec.timestamp}","${rec.type}","${rec.submittedBy}","${JSON.stringify(rec).replace(/"/g, '""')}"\n`;
+        });
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `h5r_records_${new Date().toISOString().split('T')[0]}.csv`;
+        link.click();
+        showToast('Exported to CSV');
+    };
+    
+    window.switchTab = function(tabName) {
+        const forms = ['prestart', 'housekeeping', 'handover', 'processlog', 'records'];
+        forms.forEach(form => document.getElementById(form).classList.remove('active'));
+        document.getElementById(tabName).classList.add('active');
+        const btns = document.querySelectorAll('.tab-btn');
+        btns.forEach(btn => btn.classList.remove('active'));
+        if (event && event.target) event.target.classList.add('active');
+    };
+    
+    function showToast(message, isError = false) {
+        const toast = document.getElementById('toast');
+        toast.textContent = message;
+        toast.style.backgroundColor = isError ? '#dc3545' : '#28a745';
+        toast.style.display = 'block';
+        setTimeout(() => toast.style.display = 'none', 3000);
+    }
 </script>
-
 </body>
 </html>
