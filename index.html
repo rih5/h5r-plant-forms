@@ -696,21 +696,33 @@
     }
     
     window.saveForm = function(type) {
-        if (!currentUser) {
-            showToast('Please sign in first', true);
-            return;
-        }
-        
-        const record = collectFormData(type);
-        records.unshift(record);
-        saveLocalRecords();
-        updateRecordsDisplay();
-        showToast(type.replace('prestart','Pre-Start').replace('handover','Handover').replace('processlog','Process Log').replace('housekeeping','Housekeeping') + ' submitted by ' + currentUser.name);
-        
-        // Optional: Send to Google Sheets
-        // const scriptURL = "YOUR_GOOGLE_APPS_SCRIPT_URL";
-        // fetch(scriptURL, { method: 'POST', body: JSON.stringify(record), headers: {'Content-Type':'application/json'} });
-    };
+    if (!currentUser) {
+        showToast('Please sign in first', true);
+        return;
+    }
+    
+    const record = collectFormData(type);
+    records.unshift(record);
+    saveLocalRecords();
+    updateRecordsDisplay();
+    showToast(type.replace('prestart','Pre-Start').replace('handover','Handover').replace('processlog','Process Log').replace('housekeeping','Housekeeping') + ' submitted by ' + currentUser.name);
+    
+    // Send to Google Sheets
+    const scriptURL = "https://script.google.com/a/macros/h5r.ltd/s/AKfycbykIM2X0eBFxgm9JkD9iavsNQBct8hI2Uguf9MjsVLqzQ2_yQPHJKrBKqYJ7ZXEe_EzTg/exec";
+    
+    fetch(scriptURL, {
+        method: 'POST',
+        mode: 'no-cors',
+        body: JSON.stringify(record),
+        headers: { 'Content-Type': 'application/json' }
+    })
+    .then(() => {
+        console.log("✅ Saved to Google Sheets");
+    })
+    .catch(error => {
+        console.warn("⚠️ Could not save to cloud:", error);
+    });
+};
     
     function saveLocalRecords() {
         if (currentUser) {
