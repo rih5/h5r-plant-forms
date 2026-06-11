@@ -1,1100 +1,430 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>H5R Plant Operations — Digital Forms</title>
-<style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f4f5f7; color: #1a1a2e; min-height: 100vh; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>H5R Plant Operations | Digital Forms</title>
+    
+    <!-- Google Identity Services Library -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-  /* NAV */
-  nav { background: #1a1a2e; color: #fff; padding: 0 2rem; display: flex; align-items: center; gap: 0; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
-  .nav-brand { font-size: 1.1rem; font-weight: 700; padding: 1rem 2rem 1rem 0; border-right: 1px solid rgba(255,255,255,0.1); color: #4fc3f7; letter-spacing: 0.5px; }
-  .nav-tabs { display: flex; gap: 0; overflow-x: auto; flex: 1; }
-  .nav-tab { padding: 1rem 1.2rem; font-size: 0.8rem; font-weight: 500; cursor: pointer; border-bottom: 3px solid transparent; color: rgba(255,255,255,0.6); white-space: nowrap; transition: all 0.2s; }
-  .nav-tab:hover { color: #fff; background: rgba(255,255,255,0.05); }
-  .nav-tab.active { color: #4fc3f7; border-bottom-color: #4fc3f7; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f2f5;
+            padding: 20px;
+            color: #1a1a2e;
+        }
 
-  /* LAYOUT */
-  .page { display: none; padding: 2rem; max-width: 960px; margin: 0 auto; }
-  .page.active { display: block; }
+        /* Login Overlay */
+        #login-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            transition: all 0.3s ease;
+        }
 
-  /* CARDS */
-  .card { background: #fff; border-radius: 12px; border: 1px solid #e2e4e9; padding: 1.5rem; margin-bottom: 1.5rem; }
-  .card-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.25rem; padding-bottom: 1rem; border-bottom: 1px solid #f0f0f5; }
-  .card-icon { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0; }
-  .card-title { font-size: 0.95rem; font-weight: 600; color: #1a1a2e; }
-  .card-subtitle { font-size: 0.75rem; color: #6b7280; margin-top: 2px; }
+        .login-card {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            max-width: 400px;
+            width: 90%;
+        }
 
-  /* FORM */
-  .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
-  .form-group { display: flex; flex-direction: column; gap: 5px; }
-  .form-group label { font-size: 0.75rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; }
-  .form-group input, .form-group select, .form-group textarea {
-    padding: 0.55rem 0.75rem; border: 1px solid #d1d5db; border-radius: 8px;
-    font-size: 0.9rem; color: #1a1a2e; background: #fafafa;
-    transition: border-color 0.2s, box-shadow 0.2s;
-    font-family: inherit;
-  }
-  .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
-    outline: none; border-color: #4fc3f7; box-shadow: 0 0 0 3px rgba(79,195,247,0.1); background: #fff;
-  }
-  .form-group textarea { resize: vertical; min-height: 80px; }
-  .form-group.full { grid-column: 1 / -1; }
+        .login-card h1 {
+            color: #1a1a2e;
+            margin-bottom: 10px;
+        }
 
-  /* CHECKLIST TABLE */
-  .check-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-  .check-table th { background: #1a1a2e; color: #fff; padding: 0.6rem 0.75rem; text-align: left; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.3px; }
-  .check-table th:first-child { border-radius: 8px 0 0 0; }
-  .check-table th:last-child { border-radius: 0 8px 0 0; }
-  .check-table td { padding: 0.55rem 0.75rem; border-bottom: 1px solid #f0f0f5; vertical-align: middle; }
-  .check-table tr:last-child td { border-bottom: none; }
-  .check-table tr:hover td { background: #f8f9ff; }
-  .check-table .area-header td { background: #f0f4ff; font-weight: 600; font-size: 0.75rem; color: #3730a3; text-transform: uppercase; letter-spacing: 0.5px; padding: 0.4rem 0.75rem; }
-  .check-table select { padding: 0.35rem 0.5rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.8rem; background: #fafafa; font-family: inherit; }
-  .check-table input[type="text"] { padding: 0.35rem 0.5rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.8rem; width: 100%; background: #fafafa; font-family: inherit; }
-  .status-ok { background: #dcfce7; color: #166534; border-color: #bbf7d0; }
-  .status-action { background: #fef3c7; color: #92400e; border-color: #fde68a; }
-  .status-na { background: #f3f4f6; color: #6b7280; }
+        .login-card p {
+            color: #666;
+            margin-bottom: 30px;
+        }
 
-  /* HOURLY LOG */
-  .log-table { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
-  .log-table th { background: #1a1a2e; color: #fff; padding: 0.5rem 0.4rem; text-align: center; font-size: 0.7rem; font-weight: 500; white-space: nowrap; }
-  .log-table td { padding: 0.35rem 0.4rem; border: 1px solid #e5e7eb; text-align: center; }
-  .log-table td:first-child { background: #f8f9ff; font-weight: 600; color: #3730a3; white-space: nowrap; }
-  .log-table input { padding: 0.25rem; border: 1px solid #d1d5db; border-radius: 4px; font-size: 0.75rem; width: 100%; text-align: center; background: #fafafa; min-width: 50px; font-family: inherit; }
-  .log-table input:focus { outline: none; border-color: #4fc3f7; background: #fff; }
+        #user-info {
+            background: #e8f4fd;
+            padding: 10px 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
 
-  /* SUBMIT BUTTON */
-  .btn-submit { background: #1a1a2e; color: #fff; padding: 0.75rem 2rem; border: none; border-radius: 10px; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 0.5rem; }
-  .btn-submit:hover { background: #2d2d4e; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(26,26,46,0.3); }
-  .btn-submit:active { transform: translateY(0); }
-  .btn-print { background: transparent; color: #1a1a2e; padding: 0.75rem 1.5rem; border: 1px solid #d1d5db; border-radius: 10px; font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: all 0.2s; }
-  .btn-print:hover { background: #f3f4f6; }
-  .btn-row { display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1.5rem; flex-wrap: wrap; }
+        .logout-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-top: 10px;
+        }
 
-  /* SUCCESS TOAST */
-  .toast { position: fixed; bottom: 2rem; right: 2rem; background: #166534; color: #fff; padding: 1rem 1.5rem; border-radius: 10px; font-size: 0.9rem; font-weight: 500; display: none; z-index: 999; box-shadow: 0 4px 16px rgba(0,0,0,0.2); }
-  .toast.show { display: flex; align-items: center; gap: 0.5rem; animation: slideIn 0.3s ease; }
-  @keyframes slideIn { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .logout-btn:hover {
+            background: #c82333;
+        }
 
-  /* PAGE HEADER */
-  .page-header { margin-bottom: 1.5rem; }
-  .page-header h1 { font-size: 1.4rem; font-weight: 700; color: #1a1a2e; }
-  .page-header p { font-size: 0.85rem; color: #6b7280; margin-top: 4px; }
+        /* Main App Content */
+        #app-content {
+            display: none;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
 
-  /* SHIFT BADGE */
-  .shift-badge { display: inline-flex; gap: 0.5rem; }
-  .shift-btn { padding: 0.4rem 1rem; border: 2px solid #d1d5db; border-radius: 20px; cursor: pointer; font-size: 0.8rem; font-weight: 600; background: #fff; transition: all 0.2s; }
-  .shift-btn.active-day { border-color: #f59e0b; background: #fffbeb; color: #92400e; }
-  .shift-btn.active-night { border-color: #6366f1; background: #eef2ff; color: #3730a3; }
+        /* Your existing styles continue here */
+        .header {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
 
-  /* ATTENDANCE GRID */
-  .attendance-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 0.5rem; }
-  .att-row { display: flex; align-items: center; gap: 0.5rem; padding: 0.4rem 0.6rem; border: 1px solid #e5e7eb; border-radius: 8px; background: #fafafa; }
-  .att-row input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; accent-color: #4fc3f7; }
-  .att-row input[type="text"] { flex: 1; border: none; background: transparent; font-size: 0.8rem; font-family: inherit; }
-  .att-row input[type="text"]:focus { outline: none; }
+        .user-badge {
+            background: rgba(255,255,255,0.2);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+        }
 
-  /* DIVIDER */
-  .section-divider { margin: 1.5rem 0 1rem; font-size: 0.75rem; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; gap: 0.75rem; }
-  .section-divider::after { content: ''; flex: 1; height: 1px; background: #e5e7eb; }
+        .tabs {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
 
-  /* RECORDS TABLE */
-  .records-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
-  .records-table th { background: #f8f9ff; padding: 0.6rem 0.75rem; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 0.75rem; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; }
-  .records-table td { padding: 0.6rem 0.75rem; border-bottom: 1px solid #f0f0f5; }
-  .records-table tr:last-child td { border-bottom: none; }
-  .badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 0.7rem; font-weight: 600; }
-  .badge-day { background: #fffbeb; color: #92400e; border: 1px solid #fde68a; }
-  .badge-night { background: #eef2ff; color: #3730a3; border: 1px solid #c7d2fe; }
+        .tab-btn {
+            background: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
 
-  @media (max-width: 600px) {
-    .page { padding: 1rem; }
-    nav { padding: 0 1rem; }
-    .nav-brand { font-size: 0.9rem; padding: 0.75rem 1rem 0.75rem 0; }
-    .nav-tab { padding: 0.75rem 0.75rem; font-size: 0.72rem; }
-    .form-grid { grid-template-columns: 1fr; }
-  }
+        .tab-btn.active {
+            background: #1a1a2e;
+            color: white;
+        }
 
-  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; display: none; align-items: center; justify-content: center; }
-  .modal-overlay.show { display: flex; }
-  .modal { background: #fff; border-radius: 16px; padding: 2rem; width: 90%; max-width: 480px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
-  .modal h2 { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem; color: #1a1a2e; }
-  .modal p { font-size: 0.85rem; color: #6b7280; margin-bottom: 1.25rem; }
-  .modal .form-group { margin-bottom: 1rem; }
-  .modal-btns { display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1.5rem; }
-  .btn-cancel { background: transparent; color: #6b7280; padding: 0.6rem 1.25rem; border: 1px solid #d1d5db; border-radius: 8px; cursor: pointer; font-size: 0.88rem; }
-  .btn-cancel:hover { background: #f3f4f6; }
-  .btn-send { background: #1a1a2e; color: #fff; padding: 0.6rem 1.5rem; border: none; border-radius: 8px; cursor: pointer; font-size: 0.88rem; font-weight: 600; }
-  .btn-send:hover { background: #2d2d4e; }
-  .btn-export { background: #166534; color: #fff; padding: 0.75rem 1.5rem; border: none; border-radius: 10px; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
-  .btn-export:hover { background: #14532d; }
-  .btn-email { background: #1d4ed8; color: #fff; padding: 0.75rem 1.5rem; border: none; border-radius: 10px; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
-  .btn-email:hover { background: #1e40af; }
-  @media print {
-    nav { display: none; }
-    .btn-row { display: none; }
-    .page { display: block !important; padding: 1rem; }
-    body { background: #fff; }
-  }
-</style>
+        .form-container {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            display: none;
+        }
+
+        .form-container.active {
+            display: block;
+        }
+
+        /* Form elements */
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+
+        button.submit-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #28a745;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            display: none;
+            z-index: 1000;
+        }
+
+        @media (max-width: 768px) {
+            .tab-btn { padding: 8px 16px; font-size: 12px; }
+            .header { flex-direction: column; text-align: center; gap: 10px; }
+        }
+    </style>
 </head>
 <body>
 
-<nav>
-  <div class="nav-brand">H5R Plant Ops</div>
-  <div class="nav-tabs">
-    <div class="nav-tab active" onclick="showPage('prestart')">APP Pre-Start</div>
-    <div class="nav-tab" onclick="showPage('housekeeping')">Housekeeping</div>
-    <div class="nav-tab" onclick="showPage('handover')">Shift Handover</div>
-    <div class="nav-tab" onclick="showPage('processlog')">Process Log</div>
-    <div class="nav-tab" onclick="showPage('records')">Records</div>
-  </div>
-</nav>
-
-<!-- PAGE 1: APP PRE-START CHECKLIST -->
-<div id="page-prestart" class="page active">
-  <div class="page-header">
-    <h1>APP Pre-Start Checklist</h1>
-    <p>Complete before each shift start. All items must be inspected.</p>
-  </div>
-
-  <div class="card">
-    <div class="card-header">
-      <div class="card-icon" style="background:#e0f2fe;">🗓️</div>
-      <div><div class="card-title">Shift Information</div><div class="card-subtitle">Fill in before starting inspection</div></div>
-    </div>
-    <div class="form-grid">
-      <div class="form-group">
-        <label>Date</label>
-        <input type="date" id="ps-date">
-      </div>
-      <div class="form-group">
-        <label>Shift</label>
-        <div class="shift-badge">
-          <button class="shift-btn active-day" onclick="selectShift(this,'day','ps-shift')" id="ps-day-btn">☀️ Day</button>
-          <button class="shift-btn" onclick="selectShift(this,'night','ps-shift')" id="ps-night-btn">🌙 Night</button>
+<!-- Login Overlay -->
+<div id="login-overlay">
+    <div class="login-card">
+        <h1>🔐 H5R Plant Operations</h1>
+        <p>Sign in with your company email to access digital forms</p>
+        <div id="g_id_onload"
+            data-client_id="530638387284-4ahbo2gjceuegsi0eo6e3t4s2u951hg4.apps.googleusercontent.com"
+            data-callback="handleGoogleLogin"
+            data-auto_prompt="false">
         </div>
-        <input type="hidden" id="ps-shift" value="Day">
-      </div>
-      <div class="form-group">
-        <label>Shift Supervisor</label>
-        <input type="text" id="ps-supervisor" placeholder="Full name">
-      </div>
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="card-header">
-      <div class="card-icon" style="background:#fef3c7;">🔍</div>
-      <div><div class="card-title">Inspection Items</div><div class="card-subtitle">Mark each item as OK or Action Required</div></div>
-    </div>
-    <div style="overflow-x:auto;">
-      <table class="check-table" id="prestart-table">
-        <thead>
-          <tr>
-            <th style="width:100px;">Area</th>
-            <th style="width:160px;">Equipment / Item</th>
-            <th>Inspection Point</th>
-            <th style="width:130px;">Status</th>
-            <th style="width:140px;">Remarks</th>
-          </tr>
-        </thead>
-        <tbody id="prestart-body"></tbody>
-      </table>
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="form-group">
-      <label>Additional Remarks</label>
-      <textarea id="ps-remarks" placeholder="Any additional observations or notes..."></textarea>
-    </div>
-  </div>
-
-  <div class="btn-row">
-    <button class="btn-print" onclick="window.print()">🖨️ Print</button>
-    <button class="btn-submit" onclick="saveForm('prestart')">✅ Submit Checklist</button>
-  </div>
-</div>
-
-<!-- PAGE 2: HOUSEKEEPING -->
-<div id="page-housekeeping" class="page">
-  <div class="page-header">
-    <h1>Housekeeping Inspection Sheet</h1>
-    <p>Post-shift housekeeping verification for all plant areas.</p>
-  </div>
-
-  <div class="card">
-    <div class="form-grid">
-      <div class="form-group">
-        <label>Date</label>
-        <input type="date" id="hk-date">
-      </div>
-      <div class="form-group">
-        <label>Shift</label>
-        <div class="shift-badge">
-          <button class="shift-btn active-day" onclick="selectShift(this,'day','hk-shift')" id="hk-day-btn">☀️ Day</button>
-          <button class="shift-btn" onclick="selectShift(this,'night','hk-shift')" id="hk-night-btn">🌙 Night</button>
+        <div class="g_id_signin"
+            data-type="standard"
+            data-size="large"
+            data-theme="outline"
+            data-text="sign_in_with"
+            data-shape="rectangular"
+            data-logo_alignment="left">
         </div>
-        <input type="hidden" id="hk-shift" value="Day">
-      </div>
-      <div class="form-group">
-        <label>Inspector Name</label>
-        <input type="text" id="hk-inspector" placeholder="Full name">
-      </div>
     </div>
-  </div>
-
-  <div class="card">
-    <div class="card-header">
-      <div class="card-icon" style="background:#dcfce7;">🧹</div>
-      <div><div class="card-title">Housekeeping Tasks</div></div>
-    </div>
-    <div style="overflow-x:auto;">
-      <table class="check-table">
-        <thead>
-          <tr>
-            <th style="width:60px;">Area</th>
-            <th style="width:160px;">Equipment</th>
-            <th>Task</th>
-            <th style="width:90px;">Status</th>
-            <th style="width:140px;">Comments</th>
-            <th style="width:100px;">Follow-Up</th>
-          </tr>
-        </thead>
-        <tbody id="housekeeping-body"></tbody>
-      </table>
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="form-group">
-      <label>General Observations</label>
-      <textarea id="hk-observations" placeholder="General housekeeping observations..."></textarea>
-    </div>
-  </div>
-
-  <div class="btn-row">
-    <button class="btn-print" onclick="window.print()">🖨️ Print</button>
-    <button class="btn-submit" onclick="saveForm('housekeeping')">✅ Submit Inspection</button>
-  </div>
 </div>
 
-<!-- PAGE 3: SHIFT HANDOVER -->
-<div id="page-handover" class="page">
-  <div class="page-header">
-    <h1>Plant Shift Handover Record</h1>
-    <p>Complete at end of each shift before handover to incoming supervisor.</p>
-  </div>
-
-  <div class="card">
-    <div class="form-grid">
-      <div class="form-group">
-        <label>Plant Name</label>
-        <input type="text" id="ho-plant" value="APP Plant">
-      </div>
-      <div class="form-group">
-        <label>Date</label>
-        <input type="date" id="ho-date">
-      </div>
-      <div class="form-group">
-        <label>Shift Type</label>
-        <div class="shift-badge">
-          <button class="shift-btn active-day" onclick="selectShift(this,'day','ho-shift')" id="ho-day-btn">☀️ Day</button>
-          <button class="shift-btn" onclick="selectShift(this,'night','ho-shift')" id="ho-night-btn">🌙 Night</button>
+<!-- Main App Content -->
+<div id="app-content">
+    <div class="header">
+        <h1>🏭 H5R Plant Operations</h1>
+        <div class="user-badge">
+            👤 <span id="user-email">Loading...</span>
+            <button class="logout-btn" onclick="logout()">Sign Out</button>
         </div>
-        <input type="hidden" id="ho-shift" value="Day">
-      </div>
-      <div class="form-group">
-        <label>Shift Start Time</label>
-        <input type="time" id="ho-start">
-      </div>
-      <div class="form-group">
-        <label>Shift End Time</label>
-        <input type="time" id="ho-end">
-      </div>
     </div>
-  </div>
 
-  <div class="card">
-    <div class="card-header">
-      <div class="card-icon" style="background:#e0e7ff;">👷</div>
-      <div><div class="card-title">Operator Attendance</div><div class="card-subtitle">Tick present, leave unchecked for absent</div></div>
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('prestart')">✅ Pre-Start</button>
+        <button class="tab-btn" onclick="switchTab('housekeeping')">🧹 Housekeeping</button>
+        <button class="tab-btn" onclick="switchTab('handover')">📋 Handover</button>
+        <button class="tab-btn" onclick="switchTab('processlog')">📊 Process Log</button>
+        <button class="tab-btn" onclick="switchTab('records')">📁 Records</button>
     </div>
-    <div class="attendance-grid" id="attendance-grid"></div>
-  </div>
 
-  <div class="card">
-    <div class="card-header">
-      <div class="card-icon" style="background:#fef3c7;">📊</div>
-      <div><div class="card-title">Production Summary</div></div>
+    <!-- Form containers (simplified - you'll add your full forms here) -->
+    <div id="prestart" class="form-container active">
+        <h2>Pre-Start Checklist</h2>
+        <p>Your full pre-start form content goes here.</p>
+        <button class="submit-btn" onclick="saveForm('prestart')">Submit Form</button>
     </div>
-    <div class="form-grid">
-      <div class="form-group">
-        <label>Ore Fed (Tons)</label>
-        <input type="number" id="ho-ore" placeholder="0.00" step="0.01">
-      </div>
-      <div class="form-group">
-        <label>Concentrate Produced (kg)</label>
-        <input type="number" id="ho-concentrate" placeholder="0.00" step="0.01">
-      </div>
-      <div class="form-group">
-        <label>Downtime (hours)</label>
-        <input type="number" id="ho-downtime" placeholder="0.00" step="0.01">
-      </div>
-      <div class="form-group full">
-        <label>Cause(s) of Downtime</label>
-        <input type="text" id="ho-downtime-cause" placeholder="Describe causes if any">
-      </div>
-    </div>
-  </div>
 
-  <div class="card">
-    <div class="card-header">
-      <div class="card-icon" style="background:#ffe4e6;">⚙️</div>
-      <div><div class="card-title">Equipment Performance</div></div>
+    <div id="housekeeping" class="form-container">
+        <h2>Housekeeping Inspection</h2>
+        <p>Your full housekeeping form content goes here.</p>
+        <button class="submit-btn" onclick="saveForm('housekeeping')">Submit Form</button>
     </div>
-    <div style="overflow-x:auto;">
-      <table class="check-table">
-        <thead>
-          <tr>
-            <th>Equipment</th>
-            <th style="width:120px;">Status</th>
-            <th>Observations / Remarks</th>
-          </tr>
-        </thead>
-        <tbody id="equipment-body"></tbody>
-      </table>
-    </div>
-  </div>
 
-  <div class="card">
-    <div class="card-header">
-      <div class="card-icon" style="background:#dcfce7;">🦺</div>
-      <div><div class="card-title">Safety / Incident Report</div></div>
+    <div id="handover" class="form-container">
+        <h2>Shift Handover Record</h2>
+        <p>Your full handover form content goes here.</p>
+        <button class="submit-btn" onclick="saveForm('handover')">Submit Form</button>
     </div>
-    <div class="form-grid">
-      <div class="form-group">
-        <label>Any Incidents / Accidents?</label>
-        <select id="ho-incidents">
-          <option value="No">No</option>
-          <option value="Yes">Yes</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>PPE Compliance</label>
-        <select id="ho-ppe">
-          <option value="Full">Full</option>
-          <option value="Partial">Partial</option>
-          <option value="None">None</option>
-        </select>
-      </div>
-      <div class="form-group full">
-        <label>If Incident — Explain</label>
-        <textarea id="ho-incident-detail" placeholder="Describe incident if applicable..."></textarea>
-      </div>
-      <div class="form-group full">
-        <label>Safety Hazards Observed</label>
-        <textarea id="ho-hazards" placeholder="List any safety hazards observed..."></textarea>
-      </div>
-    </div>
-  </div>
 
-  <div class="card">
-    <div class="form-group">
-      <label>General Instructions</label>
-      <textarea id="ho-instructions" placeholder="Instructions for incoming shift..."></textarea>
+    <div id="processlog" class="form-container">
+        <h2>Process Log Sheet</h2>
+        <p>Your full process log form content goes here.</p>
+        <button class="submit-btn" onclick="saveForm('processlog')">Submit Form</button>
     </div>
-    <br>
-    <div class="form-group">
-      <label>Meeting Notes</label>
-      <textarea id="ho-meeting" placeholder="Notes from shift meeting..."></textarea>
-    </div>
-  </div>
 
-  <div class="card">
-    <div class="card-header">
-      <div class="card-icon" style="background:#f3e8ff;">✍️</div>
-      <div><div class="card-title">Shift Handover Sign-Off</div></div>
+    <div id="records" class="form-container">
+        <h2>Submitted Records</h2>
+        <div id="records-list">No records submitted yet.</div>
     </div>
-    <div class="form-grid">
-      <div class="form-group">
-        <label>Outgoing Supervisor</label>
-        <input type="text" id="ho-outgoing" placeholder="Full name">
-      </div>
-      <div class="form-group">
-        <label>Incoming Supervisor</label>
-        <input type="text" id="ho-incoming" placeholder="Full name">
-      </div>
-      <div class="form-group">
-        <label>Line Manager</label>
-        <input type="text" id="ho-manager" placeholder="Full name">
-      </div>
-    </div>
-  </div>
-
-  <div class="btn-row">
-    <button class="btn-print" onclick="window.print()">🖨️ Print</button>
-    <button class="btn-submit" onclick="saveForm('handover')">✅ Submit Handover</button>
-  </div>
 </div>
 
-<!-- PAGE 4: PROCESS LOG -->
-<div id="page-processlog" class="page">
-  <div class="page-header">
-    <h1>APP Process Log Sheet</h1>
-    <p>Hourly process data entry for day and night shifts.</p>
-  </div>
-
-  <div class="card">
-    <div class="form-grid">
-      <div class="form-group">
-        <label>Date</label>
-        <input type="date" id="pl-date">
-      </div>
-      <div class="form-group">
-        <label>Shift</label>
-        <div class="shift-badge">
-          <button class="shift-btn active-day" onclick="selectShift(this,'day','pl-shift'); renderHourlyLog()" id="pl-day-btn">☀️ Day</button>
-          <button class="shift-btn" onclick="selectShift(this,'night','pl-shift'); renderHourlyLog()" id="pl-night-btn">🌙 Night</button>
-        </div>
-        <input type="hidden" id="pl-shift" value="Day">
-      </div>
-      <div class="form-group">
-        <label>Material ID</label>
-        <input type="text" id="pl-material">
-      </div>
-      <div class="form-group">
-        <label>Head Grade</label>
-        <input type="text" id="pl-headgrade" placeholder="SnO2 %">
-      </div>
-      <div class="form-group">
-        <label>Gen Set Start</label>
-        <input type="time" id="pl-genstart">
-      </div>
-      <div class="form-group">
-        <label>Gen Set End</label>
-        <input type="time" id="pl-genend">
-      </div>
-      <div class="form-group">
-        <label>Fuel Added (L)</label>
-        <input type="number" id="pl-fuel" placeholder="0">
-      </div>
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="card-header">
-      <div class="card-icon" style="background:#e0f2fe;">📊</div>
-      <div><div class="card-title">Shift Totals</div></div>
-    </div>
-    <div class="form-grid">
-      <div class="form-group">
-        <label>Trommel Scrub Feed Totaliser Start (t)</label>
-        <input type="number" id="pl-trom-start" placeholder="0700 or 1900 reading" step="0.01">
-      </div>
-      <div class="form-group">
-        <label>Trommel Scrub Feed Totaliser End (t)</label>
-        <input type="number" id="pl-trom-end" placeholder="1900 or 0700 reading" step="0.01">
-      </div>
-      <div class="form-group">
-        <label>Trommel Scrub O/S Start (t)</label>
-        <input type="number" id="pl-os-start" step="0.01">
-      </div>
-      <div class="form-group">
-        <label>Trommel Scrub O/S End (t)</label>
-        <input type="number" id="pl-os-end" step="0.01">
-      </div>
-      <div class="form-group">
-        <label>Sands Totaliser Start (t)</label>
-        <input type="number" id="pl-sands-start" step="0.01">
-      </div>
-      <div class="form-group">
-        <label>Sands Totaliser End (t)</label>
-        <input type="number" id="pl-sands-end" step="0.01">
-      </div>
-      <div class="form-group">
-        <label>+2mm CON Totaliser Start (kg)</label>
-        <input type="number" id="pl-con-start" step="0.01">
-      </div>
-      <div class="form-group">
-        <label>+2mm CON Totaliser End (kg)</label>
-        <input type="number" id="pl-con-end" step="0.01">
-      </div>
-      <div class="form-group">
-        <label>APP Runtime (hrs)</label>
-        <input type="number" id="pl-runtime" step="0.01">
-      </div>
-      <div class="form-group">
-        <label>Concentrate Produced D/S (kg)</label>
-        <input type="number" id="pl-conc-produced" step="0.01">
-      </div>
-      <div class="form-group">
-        <label>Adit 7 Pump Diesel Used (L)</label>
-        <input type="number" id="pl-adit-diesel" step="0.01">
-      </div>
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="card-header">
-      <div class="card-icon" style="background:#fef3c7;">⏱️</div>
-      <div><div class="card-title">Hourly Process Log</div><div class="card-subtitle">Enter readings for each hour of the shift</div></div>
-    </div>
-    <div style="overflow-x:auto;">
-      <table class="log-table">
-        <thead>
-          <tr>
-            <th>Time</th>
-            <th>Grizzly Speed (%)</th>
-            <th>Feed to Trommel (t/h)</th>
-            <th>Jig1 RPM</th>
-            <th>Jig2 RPM</th>
-            <th>Jig3 RPM</th>
-            <th>Jig4 RPM</th>
-            <th>Jig5 RPM</th>
-            <th>PW Manifold (psi)</th>
-            <th>Fresh Water Level</th>
-            <th>Slurry Density Cyclone Feed</th>
-            <th>Slurry Density U/F</th>
-            <th>Slurry Density O/F</th>
-            <th>Slurry Density to ST</th>
-          </tr>
-        </thead>
-        <tbody id="hourly-body"></tbody>
-      </table>
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="card-header">
-      <div class="card-icon" style="background:#ffe4e6;">🔧</div>
-      <div><div class="card-title">APP Plant Downtimes</div></div>
-    </div>
-    <div style="overflow-x:auto;">
-      <table class="check-table">
-        <thead>
-          <tr>
-            <th>Stop Time</th>
-            <th>Start Time</th>
-            <th style="width:80px;">D/T (hrs)</th>
-            <th style="width:120px;">Equipment ID</th>
-            <th>Description</th>
-            <th style="width:100px;">Criteria</th>
-          </tr>
-        </thead>
-        <tbody id="downtime-body"></tbody>
-      </table>
-    </div>
-    <div class="form-group" style="margin-top:1rem;">
-      <label>Total APP Downtime (hrs)</label>
-      <input type="number" id="pl-total-downtime" step="0.01" style="max-width:150px;">
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="form-group">
-      <label>Shift Supervisor</label>
-      <input type="text" id="pl-supervisor" placeholder="Full name">
-    </div>
-  </div>
-
-  <div class="btn-row">
-    <button class="btn-print" onclick="window.print()">🖨️ Print</button>
-    <button class="btn-submit" onclick="saveForm('processlog')">✅ Submit Log</button>
-  </div>
-</div>
-
-<!-- PAGE 5: RECORDS -->
-<div id="page-records" class="page">
-  <div class="page-header">
-    <h1>Submitted Records</h1>
-    <p>All form submissions saved in this session. Export to Excel or send by email.</p>
-  </div>
-  <div class="card">
-    <div id="records-content">
-      <p style="color:#6b7280;font-size:0.9rem;text-align:center;padding:2rem;">No records submitted yet. Complete and submit any form to see it here.</p>
-    </div>
-    <div id="records-actions" style="display:none; margin-top:1.25rem; padding-top:1.25rem; border-top:1px solid #f0f0f5;">
-      <div style="display:flex; gap:1rem; flex-wrap:wrap; justify-content:flex-end;">
-        <button class="btn-export" onclick="exportToExcel()">📊 Export to Excel</button>
-        <button class="btn-email" onclick="openEmailModal()">📧 Send by Email</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- EMAIL MODAL -->
-<div class="modal-overlay" id="email-modal">
-  <div class="modal">
-    <h2>📧 Send Records by Email</h2>
-    <p>This will open your email client with the records data. Make sure your device has an email app configured.</p>
-    <div class="form-group">
-      <label>Recipient Email</label>
-      <input type="email" id="email-to" placeholder="e.g. manager@h5resources.com">
-    </div>
-    <div class="form-group">
-      <label>Additional Notes (optional)</label>
-      <textarea id="email-notes" placeholder="Add any notes to include in the email..." style="min-height:70px;"></textarea>
-    </div>
-    <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:0.75rem;font-size:0.8rem;color:#92400e;margin-top:0.5rem;">
-      💡 <strong>Tip:</strong> For best results on local network, use your company email (Outlook). The records summary will be included in the email body.
-    </div>
-    <div class="modal-btns">
-      <button class="btn-cancel" onclick="closeEmailModal()">Cancel</button>
-      <button class="btn-send" onclick="sendEmail()">📤 Open Email Client</button>
-    </div>
-  </div>
-</div>
-
-<div class="toast" id="toast">✅ <span id="toast-msg">Form submitted successfully!</span></div>
+<div id="toast" class="toast"></div>
 
 <script>
-const prestartItems = [
-  { area: 'SAFETY', equipment: 'PPE Compliance', point: 'Operators in proper PPE gear' },
-  { area: 'SAFETY', equipment: 'Walkways and Railings', point: 'Clear of obstruction, structural integrity' },
-  { area: 'AREA 100', equipment: 'Feed Stockpile', point: 'Sufficient for a full run' },
-  { area: 'AREA 100', equipment: 'Back Hoe and Driver', point: 'Availability' },
-  { area: 'AREA 100', equipment: 'Vibrating Grizzly Feeder', point: 'Structural Integrity, no broken bars, no blockages, vibration amplitude' },
-  { area: 'AREA 100', equipment: 'Trommel Feed Conveyor', point: 'Structural integrity, greased, NO wear and tear' },
-  { area: 'AREA 100', equipment: 'Trommel Scrubber', point: 'Structural integrity, no blockages, tire pressure, greased, no leakages, spray water (adequate pressure)' },
-  { area: 'AREA 100', equipment: 'Trommel Oversize Conveyor', point: 'Structural integrity, greased, wear and tear, oversize stockyard clearance' },
-  { area: 'AREA 200', equipment: 'Jig Separators', point: 'Structural integrity, pulsation, water flow, no abnormal noise' },
-  { area: 'AREA 200', equipment: 'Back Wash Water Pumps', point: 'Greased, abnormal noise, water flow, pipes' },
-  { area: 'AREA 300', equipment: 'Concentrate Dewatering Screen', point: 'Integrity, wear and tear, vibration amplitude, no abnormal noise, no leakages' },
-  { area: 'AREA 300', equipment: 'Concentrate Slurry Pump', point: 'Functional, V-belt condition, pipes and supports' },
-  { area: 'AREA 300', equipment: 'Impact Crusher', point: 'No blockages, integrity, no leakages' },
-  { area: 'AREA 300', equipment: 'Cyclone Separator', point: 'Underflow spigot (no blockages), no leakages, pipework' },
-  { area: 'AREA 300', equipment: 'Shaking Tables', point: 'No material spillages, functional, stroke length, table tilt, pipework (no blockages)' },
-  { area: 'AREA 300', equipment: 'Table Tailings and Midlings Pumps', point: 'No blockages, functional VSDs, material flow' },
-  { area: 'AREA 400', equipment: 'Spiral Classifier', point: 'No loose bolts, greased, pipework, functional' },
-  { area: 'AREA 400', equipment: 'Tailings Dewatering Screen', point: 'Structural integrity, vibration amplitude, no clogging, no abnormal noise' },
-  { area: 'AREA 400', equipment: 'Tailings Conveyors', point: 'Structural integrity, greased, no wear and tear, lower drive pulleys free of material spillages' },
-  { area: 'AREA 600', equipment: 'Slimes Pond', point: 'Erosion spots, warning tape, water level, return water pump (functional), pontoon (structural integrity), pipework (no leakages)' },
-  { area: 'AREA 700', equipment: 'Process Water Pond', point: 'Water level, erosion points, pipes (no leakages), safety signs, pontoon (structural integrity)' },
-  { area: 'AREA 700', equipment: 'Process Water Pump', point: 'Fuel (at least 80L at start of shift), oil level, structure (no loose bolts and fittings)' },
-  { area: 'AREA 700', equipment: 'Process Water Manifold', point: 'Water pressure, no leakages, functional valves' },
-  { area: 'AREA 800', equipment: 'Fresh Water Tanks', point: 'Water level (Full), functional valves, pipes (no leakages)' },
-];
-
-const housekeepingItems = [
-  { area: '100', equipment: 'Grizzly Feeder', task: 'Remove dust and material spillages' },
-  { area: '100', equipment: 'Trommel Scrubber', task: 'Clean build-up and sweep area' },
-  { area: '200', equipment: 'Jigs', task: 'Remove settled solids, clean slabs' },
-  { area: '300', equipment: 'Slurry Pumps', task: 'Clean area around pumps, inspect leaks' },
-  { area: '300', equipment: 'Shaking Tables', task: 'Clean deck surfaces and slabs, clean magnet' },
-  { area: '400', equipment: 'Tailings Launders & Conveyors', task: 'Clean stockyards and inspect access' },
-  { area: '500', equipment: 'Magnetic Separator', task: 'Wipe clean and check chute clearance' },
-  { area: '600', equipment: 'Return Water Pump & Pond', task: 'Clear fuel and oil leak pans. No bush.' },
-  { area: '900', equipment: 'MCC', task: 'Tidy and disinfect' },
-  { area: 'General', equipment: 'Walkways & Access Routes', task: 'Sweep, remove obstructions, pick plastics, clean weight meter load cells' },
-];
-
-const equipmentItems = ['Jigs', 'Crushers', 'Shaking Tables', 'Pumps', 'Screens', 'Others'];
-
-const dayHours = ['07h00-08h00','08h00-09h00','09h00-10h00','10h00-11h00','11h00-12h00','12h00-13h00','13h00-14h00','14h00-15h00','15h00-16h00','16h00-17h00','17h00-18h00','18h00-19h00'];
-const nightHours = ['19h00-20h00','20h00-21h00','21h00-22h00','22h00-23h00','23h00-24h00','00h00-01h00','01h00-02h00','02h00-03h00','03h00-04h00','04h00-05h00','05h00-06h00','06h00-07h00'];
-
-let records = [];
-let lastArea = '';
-
-function buildPrestartTable() {
-  const tbody = document.getElementById('prestart-body');
-  lastArea = '';
-  tbody.innerHTML = '';
-  prestartItems.forEach((item, i) => {
-    if (item.area !== lastArea) {
-      const arow = document.createElement('tr');
-      arow.className = 'area-header';
-      arow.innerHTML = `<td colspan="5">${item.area}</td>`;
-      tbody.appendChild(arow);
-      lastArea = item.area;
+    // ========== GOOGLE LOGIN CONFIGURATION ==========
+    
+    // List of authorized emails (only these can access)
+    const authorizedEmails = [
+        'ri@h5r.ltd',
+        'rn@h5r.ltd',
+        'pe@h5r.ltd'
+    ];
+    
+    let currentUser = null;
+    let records = [];
+    
+    // Google Login Callback
+    window.handleGoogleLogin = function(response) {
+        // Decode the JWT token to get user info
+        const payload = parseJwt(response.credential);
+        
+        if (payload && payload.email) {
+            const userEmail = payload.email;
+            const userName = payload.name || userEmail;
+            
+            // Check if email is authorized
+            if (authorizedEmails.includes(userEmail.toLowerCase())) {
+                currentUser = {
+                    email: userEmail,
+                    name: userName,
+                    picture: payload.picture
+                };
+                
+                // Show main app
+                document.getElementById('login-overlay').style.display = 'none';
+                document.getElementById('app-content').style.display = 'block';
+                document.getElementById('user-email').innerText = userEmail;
+                
+                showToast('Welcome, ' + userName + '!');
+                
+                // Load any saved records from localStorage
+                loadLocalRecords();
+            } else {
+                // Unauthorized access
+                showToast('Access Denied: ' + userEmail + ' is not authorized.', true);
+                setTimeout(() => {
+                    logout();
+                }, 2000);
+            }
+        }
+    };
+    
+    // Helper: Parse JWT token
+    function parseJwt(token) {
+        try {
+            const base64Url = token.split('.')[1];
+            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+            const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+            }).join(''));
+            return JSON.parse(jsonPayload);
+        } catch (e) {
+            return null;
+        }
     }
-    const row = document.createElement('tr');
-    row.innerHTML = `
-      <td style="color:#6b7280;font-size:0.78rem;">${item.area}</td>
-      <td style="font-weight:500;">${item.equipment}</td>
-      <td style="color:#374151;font-size:0.82rem;">${item.point}</td>
-      <td>
-        <select class="ps-status" data-idx="${i}" onchange="highlightStatus(this)">
-          <option value="">— Select —</option>
-          <option value="OK">✅ OK</option>
-          <option value="Action Required">⚠️ Action Required</option>
-          <option value="N/A">N/A</option>
-        </select>
-      </td>
-      <td><input type="text" class="ps-remark" placeholder="Notes..."></td>
-    `;
-    tbody.appendChild(row);
-  });
-}
-
-function buildHousekeepingTable() {
-  const tbody = document.getElementById('housekeeping-body');
-  tbody.innerHTML = '';
-  housekeepingItems.forEach((item, i) => {
-    const row = document.createElement('tr');
-    row.innerHTML = `
-      <td style="font-weight:600;color:#3730a3;">${item.area}</td>
-      <td style="font-weight:500;">${item.equipment}</td>
-      <td style="color:#374151;font-size:0.82rem;">${item.task}</td>
-      <td>
-        <select class="hk-status" onchange="highlightStatus(this)">
-          <option value="">—</option>
-          <option value="✓">✓ Done</option>
-          <option value="✗">✗ Not Done</option>
-        </select>
-      </td>
-      <td><input type="text" class="hk-comment" placeholder="Comments..."></td>
-      <td>
-        <select class="hk-followup">
-          <option value="No">No</option>
-          <option value="Yes">Yes</option>
-        </select>
-      </td>
-    `;
-    tbody.appendChild(row);
-  });
-}
-
-function buildEquipmentTable() {
-  const tbody = document.getElementById('equipment-body');
-  tbody.innerHTML = '';
-  equipmentItems.forEach(eq => {
-    const row = document.createElement('tr');
-    row.innerHTML = `
-      <td style="font-weight:500;">${eq}</td>
-      <td>
-        <select class="eq-status" onchange="highlightStatus(this)">
-          <option value="">— Select —</option>
-          <option value="OK">✅ OK</option>
-          <option value="Issue">⚠️ Issue</option>
-        </select>
-      </td>
-      <td><input type="text" class="eq-obs" placeholder="Observations..."></td>
-    `;
-    tbody.appendChild(row);
-  });
-}
-
-function buildAttendanceGrid() {
-  const grid = document.getElementById('attendance-grid');
-  grid.innerHTML = '';
-  for (let i = 1; i <= 14; i++) {
-    const div = document.createElement('div');
-    div.className = 'att-row';
-    div.innerHTML = `
-      <span style="font-size:0.75rem;color:#6b7280;min-width:18px;">${i}.</span>
-      <input type="text" class="att-name" placeholder="Operator name">
-      <input type="checkbox" class="att-check" title="Present">
-    `;
-    grid.appendChild(div);
-  }
-}
-
-function buildDowntimeTable() {
-  const tbody = document.getElementById('downtime-body');
-  tbody.innerHTML = '';
-  for (let i = 0; i < 5; i++) {
-    const row = document.createElement('tr');
-    row.innerHTML = `
-      <td><input type="time" class="dt-stop"></td>
-      <td><input type="time" class="dt-start"></td>
-      <td><input type="number" class="dt-hrs" step="0.01" placeholder="0"></td>
-      <td><input type="text" class="dt-equip" placeholder="Equipment ID"></td>
-      <td><input type="text" class="dt-desc" placeholder="Description..."></td>
-      <td>
-        <select class="dt-criteria">
-          <option value="">—</option>
-          <option>Planned</option>
-          <option>Process</option>
-          <option>Mech</option>
-          <option>Electric</option>
-        </select>
-      </td>
-    `;
-    tbody.appendChild(row);
-  }
-}
-
-function renderHourlyLog() {
-  const shift = document.getElementById('pl-shift').value;
-  const hours = shift === 'Day' ? dayHours : nightHours;
-  const tbody = document.getElementById('hourly-body');
-  tbody.innerHTML = '';
-  hours.forEach(h => {
-    const row = document.createElement('tr');
-    row.innerHTML = `<td>${h}</td>` + Array(13).fill('<td><input type="number" step="0.01" placeholder="-"></td>').join('');
-    tbody.appendChild(row);
-  });
-}
-
-function highlightStatus(sel) {
-  sel.className = sel.className.replace(/status-\w+/g, '').trim();
-  if (sel.value === 'OK' || sel.value === '✓') sel.classList.add('status-ok');
-  else if (sel.value === 'Action Required' || sel.value === '✗' || sel.value === 'Issue') sel.classList.add('status-action');
-  else if (sel.value === 'N/A') sel.classList.add('status-na');
-}
-
-function selectShift(btn, type, hiddenId) {
-  const prefix = hiddenId.split('-')[0];
-  document.getElementById(prefix + '-day-btn').className = 'shift-btn';
-  document.getElementById(prefix + '-night-btn').className = 'shift-btn';
-  if (type === 'day') btn.className = 'shift-btn active-day';
-  else btn.className = 'shift-btn active-night';
-  document.getElementById(hiddenId).value = type === 'day' ? 'Day' : 'Night';
-}
-
-function showPage(name) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-  document.getElementById('page-' + name).classList.add('active');
-  event.target.classList.add('active');
-  if (name === 'records') renderRecords();
-}
-
-function saveForm(type) {
-  const now = new Date();
-  const timestamp = now.toLocaleString('en-UG');
-  let record = { type, timestamp };
-
-  if (type === 'prestart') {
-    record.date = document.getElementById('ps-date').value;
-    record.shift = document.getElementById('ps-shift').value;
-    record.supervisor = document.getElementById('ps-supervisor').value;
-    record.remarks = document.getElementById('ps-remarks').value;
-    record.items = [];
-    document.querySelectorAll('#prestart-body tr:not(.area-header)').forEach((row, i) => {
-      const status = row.querySelector('.ps-status')?.value;
-      const remark = row.querySelector('.ps-remark')?.value;
-      if (i < prestartItems.length) {
-        record.items.push({ equipment: prestartItems[i].equipment, status, remark });
-      }
-    });
-  } else if (type === 'housekeeping') {
-    record.date = document.getElementById('hk-date').value;
-    record.shift = document.getElementById('hk-shift').value;
-    record.inspector = document.getElementById('hk-inspector').value;
-    record.observations = document.getElementById('hk-observations').value;
-  } else if (type === 'handover') {
-    record.date = document.getElementById('ho-date').value;
-    record.shift = document.getElementById('ho-shift').value;
-    record.plant = document.getElementById('ho-plant').value;
-    record.ore = document.getElementById('ho-ore').value;
-    record.concentrate = document.getElementById('ho-concentrate').value;
-    record.downtime = document.getElementById('ho-downtime').value;
-    record['downtime-cause'] = document.getElementById('ho-downtime-cause').value;
-    record.incidents = document.getElementById('ho-incidents').value;
-    record.ppe = document.getElementById('ho-ppe').value;
-    record.outgoing = document.getElementById('ho-outgoing').value;
-    record.incoming = document.getElementById('ho-incoming').value;
-    record.manager = document.getElementById('ho-manager').value;
-  } else if (type === 'processlog') {
-    record.date = document.getElementById('pl-date').value;
-    record.shift = document.getElementById('pl-shift').value;
-    record.material = document.getElementById('pl-material').value;
-    record.headgrade = document.getElementById('pl-headgrade').value;
-    record.runtime = document.getElementById('pl-runtime').value;
-    record.concentrate = document.getElementById('pl-conc-produced').value;
-    record['adit-diesel'] = document.getElementById('pl-adit-diesel').value;
-    record.supervisor = document.getElementById('pl-supervisor').value;
-  }
-
-  records.unshift(record);
-  showToast(type + ' form submitted successfully!');
-}
-
-function renderRecords() {
-  const container = document.getElementById('records-content');
-  const actions = document.getElementById('records-actions');
-  if (records.length === 0) {
-    container.innerHTML = '<p style="color:#6b7280;font-size:0.9rem;text-align:center;padding:2rem;">No records submitted yet. Complete and submit any form to see it here.</p>';
-    actions.style.display = 'none';
-    return;
-  }
-  actions.style.display = 'block';
-  container.innerHTML = `
-    <table class="records-table">
-      <thead><tr><th>#</th><th>Form</th><th>Date</th><th>Shift</th><th>Submitted</th><th>Key Info</th></tr></thead>
-      <tbody>
-        ${records.map((r, i) => `
-          <tr>
-            <td style="color:#6b7280;font-size:0.8rem;">${records.length - i}</td>
-            <td style="font-weight:500;">${formNames[r.type]}</td>
-            <td>${r.date || '—'}</td>
-            <td>${r.shift ? `<span class="badge ${r.shift==='Day'?'badge-day':'badge-night'}">${r.shift}</span>` : '—'}</td>
-            <td style="color:#6b7280;font-size:0.8rem;">${r.timestamp}</td>
-            <td style="font-size:0.8rem;color:#374151;">
-              ${r.supervisor ? 'Supervisor: ' + r.supervisor : ''}
-              ${r.inspector ? 'Inspector: ' + r.inspector : ''}
-              ${r.ore ? 'Ore: ' + r.ore + 't' : ''}
-              ${r.concentrate ? ' | Conc: ' + r.concentrate + 'kg' : ''}
-              ${r.runtime ? 'Runtime: ' + r.runtime + 'hrs' : ''}
-              ${r.outgoing ? 'Outgoing: ' + r.outgoing : ''}
-              ${r.items ? (() => { const issues = r.items.filter(x=>x.status==='Action Required'); return issues.length > 0 ? `<span style="color:#b45309;">⚠️ ${issues.length} action(s) required</span>` : '<span style="color:#166534;">✅ All OK</span>'; })() : ''}
-            </td>
-          </tr>
-        `).join('')}
-      </tbody>
-    </table>
-  `;
-}
-
-function showToast(msg) {
-  const toast = document.getElementById('toast');
-  document.getElementById('toast-msg').textContent = msg;
-  toast.classList.add('show');
-  setTimeout(() => toast.classList.remove('show'), 3500);
-}
-
-// Set today's date on all date inputs
-document.querySelectorAll('input[type="date"]').forEach(d => {
-  d.value = new Date().toISOString().split('T')[0];
-});
-
-buildPrestartTable();
-buildHousekeepingTable();
-buildEquipmentTable();
-buildAttendanceGrid();
-buildDowntimeTable();
-renderHourlyLog();
-</script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script>
-const formNames = { prestart: 'APP Pre-Start', housekeeping: 'Housekeeping', handover: 'Shift Handover', processlog: 'Process Log' };
-
-function exportToExcel() {
-  if (records.length === 0) { showToast('No records to export yet!'); return; }
-  const wb = XLSX.utils.book_new();
-
-  // Sheet 1: Summary
-  const summaryData = [
-    ['H5R Plant Operations — Form Records Export'],
-    ['Exported:', new Date().toLocaleString('en-UG')],
-    ['Total Submissions:', records.length],
-    [],
-    ['Form Type', 'Date', 'Shift', 'Submitted At', 'Supervisor/Inspector', 'Key Data']
-  ];
-  records.forEach(r => {
-    summaryData.push([
-      formNames[r.type] || r.type,
-      r.date || '',
-      r.shift || '',
-      r.timestamp,
-      r.supervisor || r.inspector || '',
-      r.ore ? `Ore: ${r.ore}t | Conc: ${r.concentrate || 0}kg` :
-      r.runtime ? `Runtime: ${r.runtime}hrs | Conc: ${r.concentrate || 0}kg` :
-      r.outgoing ? `Outgoing: ${r.outgoing} | Incoming: ${r.incoming}` : ''
-    ]);
-  });
-  const wsSummary = XLSX.utils.aoa_to_sheet(summaryData);
-  wsSummary['!cols'] = [{ wch: 20 }, { wch: 14 }, { wch: 10 }, { wch: 22 }, { wch: 22 }, { wch: 35 }];
-  XLSX.utils.book_append_sheet(wb, wsSummary, 'Summary');
-
-  // Sheet 2: Pre-Start Checklists
-  const prestartRecs = records.filter(r => r.type === 'prestart');
-  if (prestartRecs.length > 0) {
-    const psData = [['Date', 'Shift', 'Supervisor', 'Equipment', 'Status', 'Remarks', 'Additional Remarks']];
-    prestartRecs.forEach(r => {
-      if (r.items && r.items.length > 0) {
-        r.items.forEach((item, i) => {
-          psData.push([
-            i === 0 ? r.date : '',
-            i === 0 ? r.shift : '',
-            i === 0 ? r.supervisor : '',
-            item.equipment,
-            item.status || '',
-            item.remark || '',
-            i === 0 ? (r.remarks || '') : ''
-          ]);
+    
+    // Logout function
+    window.logout = function() {
+        currentUser = null;
+        document.getElementById('login-overlay').style.display = 'flex';
+        document.getElementById('app-content').style.display = 'none';
+        
+        // Clear any stored session
+        sessionStorage.clear();
+    };
+    
+    // ========== FORM FUNCTIONS ==========
+    
+    function switchTab(tabName) {
+        // Hide all forms
+        const forms = ['prestart', 'housekeeping', 'handover', 'processlog', 'records'];
+        forms.forEach(form => {
+            document.getElementById(form).classList.remove('active');
         });
-        psData.push([]);
-      }
-    });
-    const wsPS = XLSX.utils.aoa_to_sheet(psData);
-    wsPS['!cols'] = [{ wch: 12 }, { wch: 8 }, { wch: 20 }, { wch: 28 }, { wch: 18 }, { wch: 25 }, { wch: 30 }];
-    XLSX.utils.book_append_sheet(wb, wsPS, 'Pre-Start Checklists');
-  }
-
-  // Sheet 3: Handover Records
-  const handoverRecs = records.filter(r => r.type === 'handover');
-  if (handoverRecs.length > 0) {
-    const hoData = [['Date', 'Shift', 'Plant', 'Ore Fed (t)', 'Concentrate (kg)', 'Downtime (hrs)', 'Downtime Cause', 'Incidents', 'PPE', 'Outgoing Supervisor', 'Incoming Supervisor']];
-    handoverRecs.forEach(r => {
-      hoData.push([r.date, r.shift, r.plant, r.ore, r.concentrate, r.downtime, r['downtime-cause'] || '', r.incidents, r.ppe, r.outgoing, r.incoming]);
-    });
-    const wsHO = XLSX.utils.aoa_to_sheet(hoData);
-    wsHO['!cols'] = Array(11).fill({ wch: 18 });
-    XLSX.utils.book_append_sheet(wb, wsHO, 'Shift Handovers');
-  }
-
-  // Sheet 4: Process Logs
-  const processRecs = records.filter(r => r.type === 'processlog');
-  if (processRecs.length > 0) {
-    const plData = [['Date', 'Shift', 'Material ID', 'Head Grade', 'APP Runtime (hrs)', 'Concentrate Produced (kg)', 'Adit 7 Diesel (L)', 'Supervisor']];
-    processRecs.forEach(r => {
-      plData.push([r.date, r.shift, r.material, r.headgrade || '', r.runtime, r.concentrate, r['adit-diesel'] || '', r.supervisor]);
-    });
-    const wsPL = XLSX.utils.aoa_to_sheet(plData);
-    wsPL['!cols'] = Array(8).fill({ wch: 20 });
-    XLSX.utils.book_append_sheet(wb, wsPL, 'Process Logs');
-  }
-
-  const date = new Date().toISOString().split('T')[0];
-  XLSX.writeFile(wb, `H5R_Plant_Records_${date}.xlsx`);
-  showToast('Excel file downloaded successfully!');
-}
-
-function openEmailModal() {
-  if (records.length === 0) { showToast('No records to send yet!'); return; }
-  document.getElementById('email-modal').classList.add('show');
-}
-
-function closeEmailModal() {
-  document.getElementById('email-modal').classList.remove('show');
-}
-
-function sendEmail() {
-  const to = document.getElementById('email-to').value.trim();
-  const notes = document.getElementById('email-notes').value.trim();
-  if (!to) { alert('Please enter a recipient email address.'); return; }
-
-  const date = new Date().toLocaleString('en-UG');
-  let body = `H5R PLANT OPERATIONS — FORM SUBMISSIONS REPORT\n`;
-  body += `Generated: ${date}\n`;
-  body += `Total Submissions: ${records.length}\n\n`;
-  if (notes) body += `NOTES FROM SUBMITTER:\n${notes}\n\n`;
-  body += `--- SUBMISSIONS SUMMARY ---\n\n`;
-
-  records.forEach((r, i) => {
-    body += `${i + 1}. ${formNames[r.type] || r.type}\n`;
-    body += `   Date: ${r.date || 'N/A'} | Shift: ${r.shift || 'N/A'}\n`;
-    body += `   Submitted: ${r.timestamp}\n`;
-    if (r.supervisor) body += `   Supervisor: ${r.supervisor}\n`;
-    if (r.inspector) body += `   Inspector: ${r.inspector}\n`;
-    if (r.ore) body += `   Ore Fed: ${r.ore}t | Concentrate: ${r.concentrate || 0}kg | Downtime: ${r.downtime || 0}hrs\n`;
-    if (r.runtime) body += `   APP Runtime: ${r.runtime}hrs | Concentrate: ${r.concentrate || 0}kg\n`;
-    if (r.outgoing) body += `   Outgoing: ${r.outgoing} | Incoming: ${r.incoming}\n`;
-    if (r.items) {
-      const issues = r.items.filter(it => it.status === 'Action Required');
-      if (issues.length > 0) {
-        body += `   ⚠️ Action Required (${issues.length} items): ${issues.map(it => it.equipment).join(', ')}\n`;
-      } else {
-        body += `   ✅ All items OK\n`;
-      }
+        // Show selected
+        document.getElementById(tabName).classList.add('active');
+        
+        // Update button styles
+        const btns = document.querySelectorAll('.tab-btn');
+        btns.forEach(btn => btn.classList.remove('active'));
+        event.target.classList.add('active');
     }
-    body += '\n';
-  });
-
-  body += `\n--- END OF REPORT ---\nSent from H5R Plant Operations Digital Forms`;
-
-  const subject = encodeURIComponent(`H5R Plant Operations Report — ${new Date().toLocaleDateString('en-UG')}`);
-  const encodedBody = encodeURIComponent(body);
-  window.location.href = `mailto:${to}?subject=${subject}&body=${encodedBody}`;
-  closeEmailModal();
-  showToast('Email client opened!');
-}
+    
+    function showToast(message, isError = false) {
+        const toast = document.getElementById('toast');
+        toast.textContent = message;
+        toast.style.backgroundColor = isError ? '#dc3545' : '#28a745';
+        toast.style.display = 'block';
+        setTimeout(() => {
+            toast.style.display = 'none';
+        }, 3000);
+    }
+    
+    function saveForm(type) {
+        if (!currentUser) {
+            showToast('Please sign in first', true);
+            return;
+        }
+        
+        const now = new Date();
+        const record = {
+            type: type,
+            timestamp: now.toLocaleString('en-UG'),
+            submittedBy: currentUser.email,
+            submittedByName: currentUser.name
+        };
+        
+        // Add your form-specific data collection here
+        // For now, just a sample
+        record.sampleData = "Form submitted at " + now.toLocaleTimeString();
+        
+        // Save locally
+        records.unshift(record);
+        saveLocalRecords();
+        updateRecordsDisplay();
+        
+        showToast(type + ' form submitted successfully by ' + currentUser.name);
+        
+        // TODO: Send to Google Sheets (add your script URL here)
+        // const scriptURL = "YOUR_GOOGLE_APPS_SCRIPT_URL";
+        // fetch(scriptURL, { method: 'POST', body: JSON.stringify(record), ... })
+    }
+    
+    function loadLocalRecords() {
+        const saved = localStorage.getItem('h5r_records_' + currentUser?.email);
+        if (saved) {
+            records = JSON.parse(saved);
+            updateRecordsDisplay();
+        }
+    }
+    
+    function saveLocalRecords() {
+        if (currentUser) {
+            localStorage.setItem('h5r_records_' + currentUser.email, JSON.stringify(records));
+        }
+    }
+    
+    function updateRecordsDisplay() {
+        const container = document.getElementById('records-list');
+        if (!container) return;
+        
+        if (records.length === 0) {
+            container.innerHTML = '<p>No records submitted yet.</p>';
+            return;
+        }
+        
+        let html = '<div style="overflow-x:auto;"><table border="1" style="width:100%; border-collapse:collapse;">';
+        html += '<tr><th>Time</th><th>Form Type</th><th>Submitted By</th></tr>';
+        records.forEach(rec => {
+            html += `<tr>
+                        <td>${rec.timestamp}</td>
+                        <td>${rec.type}</td>
+                        <td>${rec.submittedBy}</td>
+                     </tr>`;
+        });
+        html += '</table></div>';
+        container.innerHTML = html;
+    }
+    
+    // Make functions global
+    window.switchTab = switchTab;
+    window.saveForm = saveForm;
+    window.showToast = showToast;
 </script>
+
+</body>
+</html>
