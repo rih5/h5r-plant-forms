@@ -22,7 +22,6 @@
             color: #1a1a2e;
         }
 
-        /* Login Overlay */
         #login-overlay {
             position: fixed;
             top: 0;
@@ -34,7 +33,6 @@
             justify-content: center;
             align-items: center;
             z-index: 2000;
-            transition: all 0.3s ease;
         }
 
         .login-card {
@@ -68,11 +66,6 @@
             margin-left: 10px;
         }
 
-        .logout-btn:hover {
-            background: #c82333;
-        }
-
-        /* Main App Content */
         #app-content {
             display: none;
             max-width: 1400px;
@@ -169,10 +162,6 @@
             color: white;
         }
 
-        tr:nth-child(even) {
-            background: #f9f9f9;
-        }
-
         input, select, textarea {
             width: 100%;
             padding: 8px;
@@ -184,6 +173,10 @@
         input[type="checkbox"] {
             width: auto;
             transform: scale(1.2);
+        }
+
+        select {
+            cursor: pointer;
         }
 
         button.submit-btn {
@@ -279,10 +272,9 @@
         <button class="tab-btn" onclick="switchTab('handover')">📋 Handover</button>
         <button class="tab-btn" onclick="switchTab('processlog')">📊 Process Log</button>
         <button class="tab-btn" onclick="switchTab('records')">📁 Records</button>
-        <button class="tab-btn" onclick="testFunction()" style="background:#dc3545; color:white;">🔧 TEST</button>
     </div>
 
-    <!-- ========== PRE-START FORM ========== -->
+    <!-- PRE-START FORM -->
     <div id="prestart" class="form-container active">
         <h2>✅ APP Pre-Start Checklist</h2>
         <p>Complete before each shift start. All items must be inspected.</p>
@@ -290,8 +282,14 @@
         <h3>📋 Shift Information</h3>
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
             <div><label>📅 Date:</label><input type="date" id="ps-date"></div>
-            <div><label>🕒 Shift:</label><select id="ps-shift"><option>Day Shift (07:00-19:00)</option><option>Night Shift (19:00-07:00)</option></select></div>
-            <div><label>👨‍💼 Supervisor/Inspector:</label><input type="text" id="ps-supervisor" placeholder="Name"></div>
+            <div><label>🕒 Shift:</label>
+                <select id="ps-shift">
+                    <option value="">-- Select Shift --</option>
+                    <option value="Day Shift (07:00-19:00)">Day Shift (07:00-19:00)</option>
+                    <option value="Night Shift (19:00-07:00)">Night Shift (19:00-07:00)</option>
+                </select>
+            </div>
+            <div><label>👨‍💼 Supervisor/Inspector:</label><input type="text" id="ps-supervisor" placeholder="Enter name"></div>
             <div><label>📝 General Remarks:</label><input type="text" id="ps-remarks" placeholder="Any issues noted"></div>
         </div>
         
@@ -307,15 +305,21 @@
         <button class="submit-btn" onclick="saveForm('prestart')">✅ Submit Pre-Start Checklist</button>
     </div>
 
-    <!-- ========== HOUSEKEEPING FORM ========== -->
+    <!-- HOUSEKEEPING FORM -->
     <div id="housekeeping" class="form-container">
         <h2>🧹 Housekeeping Inspection Sheet</h2>
         <p>Post-shift housekeeping verification for all plant areas.</p>
         
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
             <div><label>📅 Date:</label><input type="date" id="hk-date"></div>
-            <div><label>🕒 Shift:</label><select id="hk-shift"><option>Day Shift</option><option>Night Shift</option></select></div>
-            <div><label>👨‍💼 Inspector:</label><input type="text" id="hk-inspector" placeholder="Name"></div>
+            <div><label>🕒 Shift:</label>
+                <select id="hk-shift">
+                    <option value="">-- Select Shift --</option>
+                    <option>Day Shift</option>
+                    <option>Night Shift</option>
+                </select>
+            </div>
+            <div><label>👨‍💼 Inspector:</label><input type="text" id="hk-inspector" placeholder="Enter name"></div>
         </div>
         
         <div style="overflow-x: auto;">
@@ -327,7 +331,7 @@
         <button class="submit-btn" onclick="saveForm('housekeeping')">✅ Submit Housekeeping Report</button>
     </div>
 
-    <!-- ========== HANDOVER FORM ========== -->
+    <!-- HANDOVER FORM -->
     <div id="handover" class="form-container">
         <h2>📋 Plant Shift Handover Record</h2>
         <p>Complete at end of each shift before handover to incoming supervisor.</p>
@@ -337,10 +341,10 @@
         
         <h3>📊 Production Summary</h3>
         <div class="production-grid">
-            <div class="prod-card"><label>Ore Processed (tons):</label><input type="number" id="ho-ore" step="any"></div>
-            <div class="prod-card"><label>Concentrate Produced (kg):</label><input type="number" id="ho-concentrate" step="any"></div>
-            <div class="prod-card"><label>Tailings Produced (tons):</label><input type="number" id="ho-tailings" step="any"></div>
-            <div class="prod-card"><label>Water Consumption (m³):</label><input type="number" id="ho-water" step="any"></div>
+            <div class="prod-card"><label>Ore Processed (tons):</label><input type="number" id="ho-ore" step="any" placeholder="0"></div>
+            <div class="prod-card"><label>Concentrate Produced (kg):</label><input type="number" id="ho-concentrate" step="any" placeholder="0"></div>
+            <div class="prod-card"><label>Tailings Produced (tons):</label><input type="number" id="ho-tailings" step="any" placeholder="0"></div>
+            <div class="prod-card"><label>Water Consumption (m³):</label><input type="number" id="ho-water" step="any" placeholder="0"></div>
         </div>
         
         <h3>⚙️ Equipment Performance</h3>
@@ -353,29 +357,35 @@
         
         <h3>✍️ Shift Handover Sign-Off</h3>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-            <div><label>Outgoing Supervisor:</label><input type="text" id="ho-outgoing"></div>
-            <div><label>Incoming Supervisor:</label><input type="text" id="ho-incoming"></div>
+            <div><label>Outgoing Supervisor:</label><input type="text" id="ho-outgoing" placeholder="Name"></div>
+            <div><label>Incoming Supervisor:</label><input type="text" id="ho-incoming" placeholder="Name"></div>
         </div>
         <button class="submit-btn" onclick="saveForm('handover')">✅ Submit Handover Record</button>
     </div>
 
-    <!-- ========== PROCESS LOG FORM ========== -->
+    <!-- PROCESS LOG FORM -->
     <div id="processlog" class="form-container">
         <h2>📊 APP Process Log Sheet</h2>
         <p>Hourly process data entry for day and night shifts.</p>
         
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 20px;">
             <div><label>📅 Date:</label><input type="date" id="pl-date"></div>
-            <div><label>🕒 Shift:</label><select id="pl-shift"><option>Day Shift</option><option>Night Shift</option></select></div>
-            <div><label>👨‍💼 Data Entered By:</label><input type="text" id="pl-operator"></div>
+            <div><label>🕒 Shift:</label>
+                <select id="pl-shift">
+                    <option value="">-- Select Shift --</option>
+                    <option>Day Shift</option>
+                    <option>Night Shift</option>
+                </select>
+            </div>
+            <div><label>👨‍💼 Data Entered By:</label><input type="text" id="pl-operator" placeholder="Name"></div>
         </div>
         
         <h3>📊 Shift Totals</h3>
         <div class="production-grid">
-            <div class="prod-card"><label>Total Feed (tons):</label><input type="number" id="pl-total-feed" step="any"></div>
-            <div class="prod-card"><label>Total Concentrate (kg):</label><input type="number" id="pl-total-conc" step="any"></div>
-            <div class="prod-card"><label>Total Runtime (hrs):</label><input type="number" id="pl-runtime" step="0.1"></div>
-            <div class="prod-card"><label>Avg Recovery (%):</label><input type="number" id="pl-recovery" step="any"></div>
+            <div class="prod-card"><label>Total Feed (tons):</label><input type="number" id="pl-total-feed" step="any" placeholder="0"></div>
+            <div class="prod-card"><label>Total Concentrate (kg):</label><input type="number" id="pl-total-conc" step="any" placeholder="0"></div>
+            <div class="prod-card"><label>Total Runtime (hrs):</label><input type="number" id="pl-runtime" step="0.1" placeholder="0"></div>
+            <div class="prod-card"><label>Avg Recovery (%):</label><input type="number" id="pl-recovery" step="any" placeholder="0"></div>
         </div>
         
         <h3>⏱️ Hourly Process Log</h3>
@@ -393,7 +403,7 @@
         <button class="submit-btn" onclick="saveForm('processlog')">✅ Submit Process Log</button>
     </div>
 
-    <!-- ========== RECORDS ========== -->
+    <!-- RECORDS -->
     <div id="records" class="form-container">
         <h2>📁 Submitted Records</h2>
         <div id="records-list">No records submitted yet.</div>
@@ -404,32 +414,24 @@
 <div id="toast" class="toast"></div>
 
 <script>
-    // ========== GOOGLE LOGIN CONFIGURATION ==========
-    
-    // List of authorized emails
-    const authorizedEmails = [
-        'ri@h5r.ltd',
-        'rn@h5r.ltd',
-        'pe@h5r.ltd'
-    ];
+    // AUTHORIZED USERS
+    const authorizedEmails = ['ri@h5r.ltd', 'rn@h5r.ltd', 'pe@h5r.ltd'];
     
     let currentUser = null;
     let records = [];
     
-    // Google Login Callback
+    // GOOGLE SHEETS WEB APP URL
+    const SCRIPT_URL = "https://script.google.com/a/macros/h5r.ltd/s/AKfycbykIM2X0eBFxgm9JkD9iavsNQBct8hI2Uguf9MjsVLqzQ2_yQPHJKrBKqYJ7ZXEe_EzTg/exec";
+    
+    // ========== GOOGLE LOGIN ==========
     window.handleGoogleLogin = function(response) {
-        const payload = parseJwt(response.credential);
-        
-        if (payload && payload.email) {
+        try {
+            const payload = JSON.parse(atob(response.credential.split('.')[1]));
             const userEmail = payload.email;
             const userName = payload.name || userEmail;
             
             if (authorizedEmails.includes(userEmail.toLowerCase())) {
-                currentUser = {
-                    email: userEmail,
-                    name: userName,
-                    picture: payload.picture
-                };
+                currentUser = { email: userEmail, name: userName };
                 
                 document.getElementById('login-overlay').style.display = 'none';
                 document.getElementById('app-content').style.display = 'block';
@@ -439,33 +441,21 @@
                 loadLocalRecords();
                 initializeForms();
             } else {
-                showToast('Access Denied: ' + userEmail + ' is not authorized.', true);
+                showToast('Access Denied: ' + userEmail, true);
                 setTimeout(() => logout(), 2000);
             }
+        } catch(e) {
+            console.error("Login error:", e);
         }
     };
-    
-    function parseJwt(token) {
-        try {
-            const base64Url = token.split('.')[1];
-            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-            const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
-                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-            }).join(''));
-            return JSON.parse(jsonPayload);
-        } catch (e) {
-            return null;
-        }
-    }
     
     window.logout = function() {
         currentUser = null;
         document.getElementById('login-overlay').style.display = 'flex';
         document.getElementById('app-content').style.display = 'none';
-        sessionStorage.clear();
     };
     
-    // ========== INITIALIZE FORM DATA ==========
+    // ========== INITIALIZE FORMS (NO DEFAULTS) ==========
     
     const prestartItems = [
         { area: "SAFETY", equipment: "PPE Compliance", point: "Operators in proper PPE gear" },
@@ -511,7 +501,7 @@
     const hourlySlots = ["07h00-08h00", "08h00-09h00", "09h00-10h00", "10h00-11h00", "11h00-12h00", "12h00-13h00", "13h00-14h00", "14h00-15h00", "15h00-16h00", "16h00-17h00", "17h00-18h00", "18h00-19h00"];
     
     function initializeForms() {
-        // Pre-start table
+        // Pre-start table - NO DEFAULT, user must select
         const tbody = document.getElementById('prestart-body');
         tbody.innerHTML = '';
         prestartItems.forEach((item, idx) => {
@@ -519,11 +509,16 @@
             row.insertCell(0).innerHTML = item.area;
             row.insertCell(1).innerHTML = item.equipment;
             row.insertCell(2).innerHTML = item.point;
-            row.insertCell(3).innerHTML = `<select class="ps-status" data-idx="${idx}"><option value="OK">✅ OK</option><option value="Action Required">⚠️ Action Required</option><option value="N/A">➖ N/A</option></select>`;
-            row.insertCell(4).innerHTML = `<input type="text" class="ps-remark" data-idx="${idx}" placeholder="Remarks">`;
+            row.insertCell(3).innerHTML = `<select class="ps-status" data-idx="${idx}">
+                <option value="">-- Select Status --</option>
+                <option value="OK">✅ OK</option>
+                <option value="Action Required">⚠️ Action Required</option>
+                <option value="N/A">➖ N/A</option>
+            </select>`;
+            row.insertCell(4).innerHTML = `<input type="text" class="ps-remark" placeholder="Enter remarks">`;
         });
         
-        // Housekeeping table
+        // Housekeeping table - NO DEFAULT
         const hkBody = document.getElementById('housekeeping-body');
         hkBody.innerHTML = '';
         housekeepingTasks.forEach((task, idx) => {
@@ -531,9 +526,14 @@
             row.insertCell(0).innerHTML = task.area;
             row.insertCell(1).innerHTML = task.equipment;
             row.insertCell(2).innerHTML = task.task;
-            row.insertCell(3).innerHTML = `<select class="hk-status"><option>✅ Satisfactory</option><option>⚠️ Needs Attention</option><option>❌ Unsatisfactory</option></select>`;
-            row.insertCell(4).innerHTML = `<input type="text" class="hk-comment" placeholder="Comments">`;
-            row.insertCell(5).innerHTML = `<input type="text" class="hk-followup" placeholder="Follow-up action">`;
+            row.insertCell(3).innerHTML = `<select class="hk-status">
+                <option value="">-- Select Status --</option>
+                <option value="Satisfactory">✅ Satisfactory</option>
+                <option value="Needs Attention">⚠️ Needs Attention</option>
+                <option value="Unsatisfactory">❌ Unsatisfactory</option>
+            </select>`;
+            row.insertCell(4).innerHTML = `<input type="text" class="hk-comment" placeholder="Enter comments">`;
+            row.insertCell(5).innerHTML = `<input type="text" class="hk-followup" placeholder="Enter follow-up action">`;
         });
         
         // Operators attendance
@@ -543,28 +543,34 @@
             opContainer.innerHTML += `<label style="display:flex; align-items:center; gap:5px;"><input type="checkbox" class="operator-check" value="${op}"> ${op}</label>`;
         });
         
-        // Equipment table
+        // Equipment table - NO DEFAULT
         const equipBody = document.querySelector('#equipment-table tbody');
         equipBody.innerHTML = '';
         equipmentList.forEach(equip => {
             const row = equipBody.insertRow();
             row.insertCell(0).innerHTML = equip;
-            row.insertCell(1).innerHTML = `<select class="equip-status"><option>✅ Operational</option><option>⚠️ Minor Issues</option><option>❌ Down/Major Issues</option><option>➖ Not Used</option></select>`;
-            row.insertCell(2).innerHTML = `<input type="text" class="equip-remark" placeholder="Observations">`;
+            row.insertCell(1).innerHTML = `<select class="equip-status">
+                <option value="">-- Select Status --</option>
+                <option value="Operational">✅ Operational</option>
+                <option value="Minor Issues">⚠️ Minor Issues</option>
+                <option value="Down">❌ Down/Major Issues</option>
+                <option value="Not Used">➖ Not Used</option>
+            </select>`;
+            row.insertCell(2).innerHTML = `<input type="text" class="equip-remark" placeholder="Enter observations">`;
         });
         
-        // Hourly log table
+        // Hourly log table - blank inputs
         const hourlyBody = document.querySelector('#hourly-table tbody');
         hourlyBody.innerHTML = '';
         hourlySlots.forEach(slot => {
             const row = hourlyBody.insertRow();
             row.insertCell(0).innerHTML = slot;
-            row.insertCell(1).innerHTML = `<input type="text" class="hourly-grizzly" placeholder="%">`;
-            row.insertCell(2).innerHTML = `<input type="text" class="hourly-feed" placeholder="t/h">`;
-            row.insertCell(3).innerHTML = `<input type="text" class="hourly-jig" placeholder="RPM">`;
-            row.insertCell(4).innerHTML = `<input type="text" class="hourly-pressure" placeholder="psi">`;
-            row.insertCell(5).innerHTML = `<input type="text" class="hourly-water" placeholder="Level">`;
-            row.insertCell(6).innerHTML = `<input type="text" class="hourly-density" placeholder="Density">`;
+            row.insertCell(1).innerHTML = `<input type="text" class="hourly-grizzly" placeholder="">`;
+            row.insertCell(2).innerHTML = `<input type="text" class="hourly-feed" placeholder="">`;
+            row.insertCell(3).innerHTML = `<input type="text" class="hourly-jig" placeholder="">`;
+            row.insertCell(4).innerHTML = `<input type="text" class="hourly-pressure" placeholder="">`;
+            row.insertCell(5).innerHTML = `<input type="text" class="hourly-water" placeholder="">`;
+            row.insertCell(6).innerHTML = `<input type="text" class="hourly-density" placeholder="">`;
         });
         
         // Set default date
@@ -572,7 +578,6 @@
         document.querySelectorAll('input[type="date"]').forEach(el => { if(!el.value) el.value = today; });
     }
     
-    let downtimeCount = 0;
     window.addDowntimeRow = function() {
         const container = document.getElementById('downtime-entries');
         const div = document.createElement('div');
@@ -593,10 +598,9 @@
     // ========== COLLECT FORM DATA ==========
     
     function collectFormData(type) {
-        const now = new Date();
         const record = {
             type: type,
-            timestamp: now.toLocaleString('en-UG'),
+            timestamp: new Date().toLocaleString('en-UG'),
             submittedBy: currentUser.email,
             submittedByName: currentUser.name
         };
@@ -611,8 +615,8 @@
                 if (i < prestartItems.length) {
                     record.items.push({
                         equipment: prestartItems[i].equipment,
-                        status: row.querySelector('.ps-status')?.value,
-                        remark: row.querySelector('.ps-remark')?.value
+                        status: row.querySelector('.ps-status')?.value || '',
+                        remark: row.querySelector('.ps-remark')?.value || ''
                     });
                 }
             });
@@ -625,9 +629,9 @@
                 if (i < housekeepingTasks.length) {
                     record.tasks.push({
                         equipment: housekeepingTasks[i].equipment,
-                        status: row.querySelector('.hk-status')?.value,
-                        comment: row.querySelector('.hk-comment')?.value,
-                        followup: row.querySelector('.hk-followup')?.value
+                        status: row.querySelector('.hk-status')?.value || '',
+                        comment: row.querySelector('.hk-comment')?.value || '',
+                        followup: row.querySelector('.hk-followup')?.value || ''
                     });
                 }
             });
@@ -644,8 +648,8 @@
             document.querySelectorAll('#equipment-table tbody tr').forEach(row => {
                 record.equipment.push({
                     name: row.cells[0].innerText,
-                    status: row.querySelector('.equip-status')?.value,
-                    remark: row.querySelector('.equip-remark')?.value
+                    status: row.querySelector('.equip-status')?.value || '',
+                    remark: row.querySelector('.equip-remark')?.value || ''
                 });
             });
         } else if (type === 'processlog') {
@@ -660,12 +664,12 @@
             document.querySelectorAll('#hourly-table tbody tr').forEach(row => {
                 record.hourly.push({
                     time: row.cells[0].innerText,
-                    grizzly: row.querySelector('.hourly-grizzly')?.value,
-                    feed: row.querySelector('.hourly-feed')?.value,
-                    jig: row.querySelector('.hourly-jig')?.value,
-                    pressure: row.querySelector('.hourly-pressure')?.value,
-                    water: row.querySelector('.hourly-water')?.value,
-                    density: row.querySelector('.hourly-density')?.value
+                    grizzly: row.querySelector('.hourly-grizzly')?.value || '',
+                    feed: row.querySelector('.hourly-feed')?.value || '',
+                    jig: row.querySelector('.hourly-jig')?.value || '',
+                    pressure: row.querySelector('.hourly-pressure')?.value || '',
+                    water: row.querySelector('.hourly-water')?.value || '',
+                    density: row.querySelector('.hourly-density')?.value || ''
                 });
             });
             record.downtimes = [];
@@ -682,11 +686,10 @@
                 }
             });
         }
-        
         return record;
     }
     
-    // ========== SAVE FORM (WITH GOOGLE SHEETS) ==========
+    // ========== SAVE FORM WITH GOOGLE SHEETS ==========
     
     window.saveForm = function(type) {
         if (!currentUser) {
@@ -694,36 +697,30 @@
             return;
         }
         
+        showToast('Saving ' + type + '...');
+        
         const record = collectFormData(type);
+        console.log("Saving record:", record);
+        
+        // Save locally
         records.unshift(record);
-        saveLocalRecords();
+        localStorage.setItem('h5r_records_' + currentUser.email, JSON.stringify(records));
         updateRecordsDisplay();
         
-        const formName = type.replace('prestart','Pre-Start').replace('handover','Handover').replace('processlog','Process Log').replace('housekeeping','Housekeeping');
-        showToast(formName + ' submitted by ' + currentUser.name);
-        
         // Send to Google Sheets
-        const scriptURL = "https://script.google.com/a/macros/h5r.ltd/s/AKfycbykIM2X0eBFxgm9JkD9iavsNQBct8hI2Uguf9MjsVLqzQ2_yQPHJKrBKqYJ7ZXEe_EzTg/exec";
-        
-        fetch(scriptURL, {
+        fetch(SCRIPT_URL, {
             method: 'POST',
             mode: 'no-cors',
             body: JSON.stringify(record),
             headers: { 'Content-Type': 'application/json' }
-        })
-        .then(() => {
-            console.log("✅ Saved to Google Sheets");
-        })
-        .catch(error => {
-            console.warn("⚠️ Could not save to cloud:", error);
+        }).then(() => {
+            console.log("✅ Sent to Google Sheets");
+            showToast('✓ ' + type.replace('prestart','Pre-Start').replace('handover','Handover').replace('processlog','Process Log').replace('housekeeping','Housekeeping') + ' saved to cloud!');
+        }).catch(error => {
+            console.error("Fetch error:", error);
+            showToast('Saved locally only (cloud error)', true);
         });
     };
-    
-    function saveLocalRecords() {
-        if (currentUser) {
-            localStorage.setItem('h5r_records_' + currentUser.email, JSON.stringify(records));
-        }
-    }
     
     function loadLocalRecords() {
         const saved = localStorage.getItem('h5r_records_' + currentUser?.email);
@@ -786,10 +783,6 @@
         toast.style.display = 'block';
         setTimeout(() => toast.style.display = 'none', 3000);
     }
-    window.testFunction = function() {
-    alert("Test button works! JavaScript is running.");
-    console.log("Test button clicked");
-};
 </script>
 </body>
 </html>
