@@ -168,8 +168,8 @@
     let currentUser = null;
     let records = [];
     
-    // YOUR NEW WEB APP URL
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby5jy2GBeIIpqpgMasYzEby-3ddyftbLUH2XL1vK9YBHpPRg9i1BhpAZ2muWMtmPW-gZg/exec";
+    // Google Apps Script Web App URL
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbznR_s8b_79YCHB4CD61PjzFl9hxKjwjDtQF6RSc6Lyx4y6_1c_F888dUhtiMWZJAIkVQ/exec";
     
     // Pre-start items
     const prestartItems = [
@@ -208,16 +208,18 @@
                 loadLocalRecords();
                 initializeForms();
             } else {
-                showToast('Access Denied', true);
+                showToast('Access Denied. Please use an authorized company email.', true);
                 setTimeout(() => logout(), 2000);
             }
-        } catch(e) { console.error(e); }
+        } catch(e) { console.error(e); showToast('Login error', true); }
     };
     
     window.logout = function() {
         currentUser = null;
         document.getElementById('login-overlay').style.display = 'flex';
         document.getElementById('app-content').style.display = 'none';
+        // Clear Google One Tap session
+        google.accounts.id.disableAutoSelect();
     };
     
     function initializeForms() {
@@ -269,17 +271,25 @@
     }
     
     function collectFormData(type) {
-        const record = { type: type, timestamp: new Date().toLocaleString(), submittedBy: currentUser.email, submittedByName: currentUser.name };
+        const record = { 
+            type: type, 
+            timestamp: new Date().toLocaleString(), 
+            submittedBy: currentUser.email, 
+            submittedByName: currentUser.name 
+        };
         
         if (type === 'prestart') {
             record.date = document.getElementById('ps-date').value;
             record.shift = document.getElementById('ps-shift').value;
             record.supervisor = document.getElementById('ps-supervisor').value;
+            record.remarks = document.getElementById('ps-remarks').value;
             record.items = [];
             document.querySelectorAll('#prestart-body tr').forEach((row, i) => {
                 if (i < prestartItems.length) {
                     record.items.push({
+                        area: prestartItems[i].area,
                         equipment: prestartItems[i].equipment,
+                        point: prestartItems[i].point,
                         status: row.querySelector('.ps-status')?.value || '',
                         remark: row.querySelector('.ps-remark')?.value || ''
                     });
@@ -293,9 +303,12 @@
             document.querySelectorAll('#housekeeping-body tr').forEach((row, i) => {
                 if (i < housekeepingTasks.length) {
                     record.tasks.push({
+                        area: housekeepingTasks[i].area,
                         equipment: housekeepingTasks[i].equipment,
+                        task: housekeepingTasks[i].task,
                         status: row.querySelector('.hk-status')?.value || '',
-                        comment: row.querySelector('.hk-comment')?.value || ''
+                        comment: row.querySelector('.hk-comment')?.value || '',
+                        followup: row.querySelector('.hk-followup')?.value || ''
                     });
                 }
             });
@@ -303,9 +316,21 @@
             record.attendance = Array.from(document.querySelectorAll('.operator-check:checked')).map(cb => cb.value);
             record.ore = document.getElementById('ho-ore').value;
             record.concentrate = document.getElementById('ho-concentrate').value;
+            record.tailings = document.getElementById('ho-tailings').value;
+            record.water = document.getElementById('ho-water').value;
             record.safety = document.getElementById('ho-safety').value;
             record.outgoing = document.getElementById('ho-outgoing').value;
             record.incoming = document.getElementById('ho-incoming').value;
+            record.equipmentStatus = [];
+            document.querySelectorAll('#equipment-table tbody tr').forEach((row, i) => {
+                if (i < equipmentList.length) {
+                    record.equipmentStatus.push({
+                        equipment: equipmentList[i],
+                        status: row.querySelector('.equip-status')?.value || '',
+                        remark: row.querySelector('.equip-remark')?.value || ''
+                    });
+                }
+            });
         } else if (type === 'processlog') {
             record.date = document.getElementById('pl-date').value;
             record.shift = document.getElementById('pl-shift').value;
@@ -313,6 +338,7 @@
             record.totalFeed = document.getElementById('pl-total-feed').value;
             record.totalConcentrate = document.getElementById('pl-total-conc').value;
             record.runtime = document.getElementById('pl-runtime').value;
+            record.recovery = document.getElementById('pl-recovery').value;
         }
         return record;
     }
@@ -335,11 +361,13 @@
             body: JSON.stringify(record),
             headers: { 'Content-Type': 'application/json' }
         }).then(() => {
-            console.log("✅ Sent to Google Sheets");
+            console.log("Sent to Google Sheets");
             showToast('✓ ' + type + ' saved to cloud!');
+            // Clear form after successful save (optional)
+            // clearForm(type);
         }).catch(error => {
             console.error("Error:", error);
-            showToast('Saved locally only', true);
+            showToast('⚠️ Saved locally only - check connection', true);
         });
     };
     
@@ -352,22 +380,38 @@
         const container = document.getElementById('records-list');
         if (!container) return;
         if (records.length === 0) { container.innerHTML = '<p>No records yet.</p>'; return; }
-        let html = '<table border="1" style="width:100%"><tr><th>Time</th><th>Form</th><th>By</th></tr>';
-        records.forEach(rec => { html += `<tr><td>${rec.timestamp}</td><td>${rec.type}</td><td>${rec.submittedBy}</td></tr>`; });
-        html += '</table>';
+        let html = '<div style="overflow-x:auto;"><table style="width:100%; border-collapse: collapse;">';
+        html += '<thead><tr style="background:#1a1a2e; color:white;"><th style="padding:10px;">Time</th><th style="padding:10px;">Form</th><th style="padding:10px;">By</th><th style="padding:10px;">Details</th></tr></thead><tbody>';
+        records.slice(0, 20).forEach(rec => { 
+            let details = '';
+            if (rec.type === 'prestart') details = `Shift: ${rec.shift || 'N/A'}`;
+            else if (rec.type === 'handover') details = `Ore: ${rec.ore || 0}t`;
+            else if (rec.type === 'processlog') details = `Feed: ${rec.totalFeed || 0}t`;
+            else details = `${rec.tasks?.length || 0} tasks`;
+            html += `<tr><td style="padding:8px; border-bottom:1px solid #ddd;">${rec.timestamp}</td>
+                     <td style="padding:8px; border-bottom:1px solid #ddd;">${rec.type}</td>
+                     <td style="padding:8px; border-bottom:1px solid #ddd;">${rec.submittedBy}</td>
+                     <td style="padding:8px; border-bottom:1px solid #ddd;">${details}</td></tr>`;
+        });
+        html += '</tbody></table></div>';
+        if (records.length > 20) html += `<p style="margin-top:10px;">Showing last 20 of ${records.length} records</p>`;
         container.innerHTML = html;
     }
     
     window.exportToCSV = function() {
-        if (records.length === 0) { showToast('No records', true); return; }
-        let csv = "Timestamp,Form Type,Submitted By\n";
-        records.forEach(rec => { csv += `"${rec.timestamp}","${rec.type}","${rec.submittedBy}"\n`; });
+        if (records.length === 0) { showToast('No records to export', true); return; }
+        let csv = "Timestamp,Form Type,Submitted By,Submitted Name,Details\n";
+        records.forEach(rec => { 
+            let details = JSON.stringify(rec).substring(0, 200).replace(/,/g, ';');
+            csv += `"${rec.timestamp}","${rec.type}","${rec.submittedBy}","${rec.submittedByName || ''}","${details}"\n`; 
+        });
         const blob = new Blob([csv], { type: 'text/csv' });
         const link = document.createElement('a');
         link.href = URL.createObjectURL(blob);
         link.download = `h5r_records_${new Date().toISOString().split('T')[0]}.csv`;
         link.click();
-        showToast('Exported!');
+        URL.revokeObjectURL(link.href);
+        showToast('Exported to CSV!');
     };
     
     window.switchTab = function(tabName) {
@@ -376,7 +420,18 @@
         document.getElementById(tabName).classList.add('active');
         const btns = document.querySelectorAll('.tab-btn');
         btns.forEach(btn => btn.classList.remove('active'));
-        if (event && event.target) event.target.classList.add('active');
+        // Find the clicked button and mark it active
+        for (let btn of btns) {
+            if (btn.textContent.toLowerCase().includes(tabName.toLowerCase()) || 
+                (tabName === 'prestart' && btn.textContent.includes('Pre-Start')) ||
+                (tabName === 'housekeeping' && btn.textContent.includes('Housekeeping')) ||
+                (tabName === 'handover' && btn.textContent.includes('Handover')) ||
+                (tabName === 'processlog' && btn.textContent.includes('Process')) ||
+                (tabName === 'records' && btn.textContent.includes('Records'))) {
+                btn.classList.add('active');
+                break;
+            }
+        }
     };
     
     function showToast(msg, isErr) {
@@ -386,6 +441,12 @@
         toast.style.display = 'block';
         setTimeout(() => toast.style.display = 'none', 3000);
     }
+    
+    // Initialize on load
+    window.onload = function() {
+        // Check if user might already be signed in
+        console.log("H5R Plant Operations Ready");
+    };
 </script>
 </body>
 </html>
