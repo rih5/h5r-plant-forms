@@ -146,18 +146,21 @@
 <div id="login-overlay">
     <div class="login-card">
         <h1>🔐 H5R Plant Operations</h1>
-        <p>Select your access level for testing</p>
+        <p>Sign in to access digital forms</p>
         
-        <!-- Temporary test buttons -->
-        <div style="display: flex; flex-direction: column; gap: 10px;">
-            <button onclick="testLogin('ri@h5r.ltd', 'RI User')" style="padding:12px; background:#1a1a2e; color:white; border:none; border-radius:8px; cursor:pointer;">👤 Login as RI (ri@h5r.ltd)</button>
-            <button onclick="testLogin('rn@h5r.ltd', 'RN User')" style="padding:12px; background:#16213e; color:white; border:none; border-radius:8px; cursor:pointer;">👤 Login as RN (rn@h5r.ltd)</button>
-            <button onclick="testLogin('pe@h5r.ltd', 'PE User')" style="padding:12px; background:#0f3460; color:white; border:none; border-radius:8px; cursor:pointer;">👤 Login as PE (pe@h5r.ltd)</button>
+        <!-- TEST LOGIN BUTTONS - Remove these for production -->
+        <div style="margin: 20px 0;">
+            <p style="font-size:13px; margin-bottom:10px;"><strong>Quick Login (Testing):</strong></p>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;">
+                <button onclick="testLogin('ri@h5r.ltd', 'RI Operator')" style="padding:10px 20px; background:#1a1a2e; color:white; border:none; border-radius:8px; cursor:pointer;">👤 RI</button>
+                <button onclick="testLogin('rn@h5r.ltd', 'RN Operator')" style="padding:10px 20px; background:#16213e; color:white; border:none; border-radius:8px; cursor:pointer;">👤 RN</button>
+                <button onclick="testLogin('pe@h5r.ltd', 'PE Supervisor')" style="padding:10px 20px; background:#0f3460; color:white; border:none; border-radius:8px; cursor:pointer;">👤 PE</button>
+            </div>
         </div>
         
         <hr style="margin: 20px 0;">
-        <p style="font-size:12px; color:#999;">Or use Google Sign-In below:</p>
         
+        <p style="font-size:13px; margin-bottom:15px;">Or sign in with Google:</p>
         <div id="g_id_onload"
             data-client_id="530638387284-4ahbo2gjceuegsi0eo6e3t4s2u951hg4.apps.googleusercontent.com"
             data-callback="handleGoogleLogin"
@@ -171,6 +174,8 @@
             data-shape="rectangular"
             data-logo_alignment="left">
         </div>
+        
+        <p style="font-size:11px; color:#999; margin-top:20px;">⚠️ Test mode active. For production, deploy to web server.</p>
     </div>
 </div>
 
