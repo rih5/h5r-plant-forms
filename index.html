@@ -226,8 +226,8 @@
     let currentUser = null;
     let records = [];
     
-    // YOUR UPDATED WEB APP URL
-    const SCRIPT_URL = "https://script.google.com/a/macros/h5r.ltd/s/AKfycbzJ9flmEll-RaxIn_O4XGFgcY7IPwiTPyt2eMgw00Q8aa0mQBAub1-I6FprEsabqnJZIA/exec";
+    // UPDATED WEB APP URL - CORRECT FORMAT
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwhy11rJhfL3dZ7Dpa4QT_BHvDoKFeI1XQQjynygzwLSgrr_rKYKaiAU7oqWl9v-O19fA/exec";
     
     window.handleGoogleLogin = function(response) {
         try {
@@ -496,7 +496,7 @@
             headers: { 'Content-Type': 'application/json' }
         }).then(() => {
             console.log("✅ Sent to Google Sheets");
-            showToast('✓ ' + type.replace('prestart','Pre-Start').replace('handover','Handover').replace('processlog','Process Log').replace('housekeeping','Housekeeping') + ' saved!');
+            showToast('✓ ' + type.replace('prestart','Pre-Start').replace('handover','Handover').replace('processlog','Process Log').replace('housekeeping','Housekeeping') + ' saved to cloud!');
         }).catch(error => {
             console.error("Fetch error:", error);
             showToast('Saved locally only', true);
