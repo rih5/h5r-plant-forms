@@ -279,6 +279,7 @@
         <button class="tab-btn" onclick="switchTab('handover')">📋 Handover</button>
         <button class="tab-btn" onclick="switchTab('processlog')">📊 Process Log</button>
         <button class="tab-btn" onclick="switchTab('records')">📁 Records</button>
+        <button class="tab-btn" onclick="testFunction()" style="background:#dc3545; color:white;">🔧 TEST</button>
     </div>
 
     <!-- ========== PRE-START FORM ========== -->
@@ -785,6 +786,10 @@
         toast.style.display = 'block';
         setTimeout(() => toast.style.display = 'none', 3000);
     }
+    window.testFunction = function() {
+    alert("Test button works! JavaScript is running.");
+    console.log("Test button clicked");
+};
 </script>
 </body>
 </html>
