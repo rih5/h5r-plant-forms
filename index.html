@@ -142,15 +142,14 @@
     </style>
 </head>
 <body>
-
 <div id="login-overlay">
     <div class="login-card">
         <h1>🔐 H5R Plant Operations</h1>
         <p>Sign in to access digital forms</p>
         
-        <!-- TEST LOGIN BUTTONS - Remove these for production -->
+        <!-- Quick Test Login Buttons -->
         <div style="margin: 20px 0;">
-            <p style="font-size:13px; margin-bottom:10px;"><strong>Quick Login (Testing):</strong></p>
+            <p style="font-size:13px; margin-bottom:10px;"><strong>Quick Login:</strong></p>
             <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;">
                 <button onclick="testLogin('ri@h5r.ltd', 'RI Operator')" style="padding:10px 20px; background:#1a1a2e; color:white; border:none; border-radius:8px; cursor:pointer;">👤 RI</button>
                 <button onclick="testLogin('rn@h5r.ltd', 'RN Operator')" style="padding:10px 20px; background:#16213e; color:white; border:none; border-radius:8px; cursor:pointer;">👤 RN</button>
@@ -174,11 +173,8 @@
             data-shape="rectangular"
             data-logo_alignment="left">
         </div>
-        
-        <p style="font-size:11px; color:#999; margin-top:20px;">⚠️ Test mode active. For production, deploy to web server.</p>
     </div>
 </div>
-
 <!-- Loading Overlay -->
 <div id="loadingOverlay" class="loading-overlay">
     <div class="loading-card">
@@ -367,7 +363,7 @@
 <div id="toast" class="toast"></div>
 
 <script>
-    const authorizedEmails = ['ri@h5r.ltd', 'rn@h5r.ltd', 'pe@h5r.ltd', 'rickyiraguha@gmail.com'];
+    const authorizedEmails = ['ri@h5r.ltd', 'rn@h5r.ltd', 'pe@h5r.ltd'];
     let currentUser = null;
     let records = [];
     
@@ -396,7 +392,20 @@
     const equipmentList = ["Jigs", "Crushers", "Shaking Tables", "Pumps", "Screens"];
     const operators = ["Operator 1", "Operator 2", "Operator 3", "Operator 4", "Operator 5"];
     
-    // Loading simulation
+    // ========== TEST LOGIN FUNCTION ==========
+    window.testLogin = function(email, name) {
+        currentUser = { email: email, name: name };
+        document.getElementById('login-overlay').style.display = 'none';
+        document.getElementById('app-content').style.display = 'block';
+        document.getElementById('user-email').innerHTML = `${email} <button class="logout-btn" onclick="logout()">Sign Out</button>`;
+        showToast(`Welcome ${name}! (Test Mode - Data saves normally)`);
+        loadLocalRecords();
+        initializeForms();
+        console.log(`[TEST LOGIN] Logged in as ${email}`);
+    };
+    // ========== END TEST LOGIN ==========
+    
+    // Loading functions
     function showLoading(status, progress = 0) {
         const overlay = document.getElementById('loadingOverlay');
         const statusEl = document.getElementById('loadingStatus');
@@ -459,7 +468,6 @@
                 if (!validateConditionalRemark(status, remark, i, 'prestart')) isValid = false;
             });
         }
-        
         else if (formType === 'housekeeping') {
             isValid &= validateRequired(document.getElementById('hk-date').value, 'hk-date', 'hk-date-error');
             isValid &= validateRequired(document.getElementById('hk-shift').value, 'hk-shift', 'hk-shift-error');
@@ -472,7 +480,6 @@
                 if (!validateConditionalRemark(status, comment, i, 'housekeeping')) isValid = false;
             });
         }
-        
         else if (formType === 'handover') {
             isValid &= validateRequired(document.getElementById('ho-outgoing').value, 'ho-outgoing', 'ho-outgoing-error');
             isValid &= validateRequired(document.getElementById('ho-incoming').value, 'ho-incoming', 'ho-incoming-error');
@@ -484,7 +491,6 @@
                 if (!validateConditionalRemark(status, remark, i, 'handover')) isValid = false;
             });
         }
-        
         else if (formType === 'processlog') {
             isValid &= validateRequired(document.getElementById('pl-date').value, 'pl-date', 'pl-date-error');
             isValid &= validateRequired(document.getElementById('pl-shift').value, 'pl-shift', 'pl-shift-error');
@@ -505,14 +511,10 @@
                 document.getElementById('login-overlay').style.display = 'none';
                 document.getElementById('app-content').style.display = 'block';
                 document.getElementById('user-email').innerHTML = `${userEmail} <button class="logout-btn" onclick="logout()">Sign Out</button>`;
-                
-                // Log the login for audit
-                console.log(`[AUDIT] User ${userEmail} logged in at ${new Date().toISOString()}`);
                 showToast('Welcome, ' + userName + '!');
                 loadLocalRecords();
                 initializeForms();
             } else {
-                console.log(`[AUDIT] Denied access for ${userEmail}`);
                 showToast('Access Denied. Please use an authorized company email.', true);
                 setTimeout(() => logout(), 2000);
             }
@@ -520,13 +522,12 @@
     };
     
     window.logout = function() {
-        if (currentUser) {
-            console.log(`[AUDIT] User ${currentUser.email} logged out at ${new Date().toISOString()}`);
-        }
         currentUser = null;
         document.getElementById('login-overlay').style.display = 'flex';
         document.getElementById('app-content').style.display = 'none';
-        google.accounts.id.disableAutoSelect();
+        if (google && google.accounts) {
+            google.accounts.id.disableAutoSelect();
+        }
     };
     
     function initializeForms() {
@@ -583,14 +584,13 @@
         });
     }
     
-    function collectFormData(type) {
+    async function collectFormData(type) {
         const record = { 
             type: type, 
             timestamp: new Date().toLocaleString(), 
             timestampISO: new Date().toISOString(),
             submittedBy: currentUser.email, 
-            submittedByName: currentUser.name,
-            ipAddress: await getIP() // Will be added
+            submittedByName: currentUser.name
         };
         
         if (type === 'prestart') {
@@ -658,26 +658,14 @@
         return record;
     }
     
-    async function getIP() {
-        try {
-            const response = await fetch('https://api.ipify.org?format=json');
-            const data = await response.json();
-            return data.ip;
-        } catch(e) {
-            return 'Unable to determine';
-        }
-    }
-    
     window.saveForm = async function(type) {
         if (!currentUser) { showToast('Please sign in first', true); return; }
         
-        // Validate form first
         if (!validateForm(type)) {
             showToast('Please fix validation errors before submitting', true);
             return;
         }
         
-        // Disable submit button
         const submitBtn = document.querySelector(`#${type} .submit-btn`);
         if (submitBtn) submitBtn.disabled = true;
         
@@ -691,9 +679,8 @@
         
         updateProgress(50, 'Sending to secure cloud storage...');
         
-        // Send to Google Sheets with timeout
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
         
         try {
             const fetchPromise = fetch(SCRIPT_URL, {
@@ -711,7 +698,6 @@
             updateProgress(90, 'Saving locally...');
             await new Promise(r => setTimeout(r, 200));
             
-            // Save locally
             records.unshift(record);
             localStorage.setItem('h5r_records_' + currentUser.email, JSON.stringify(records));
             updateRecordsDisplay();
@@ -722,18 +708,15 @@
             hideLoading();
             showToast('✓ ' + type + ' saved to cloud successfully!');
             
-            // Optionally clear form after successful save
             if (confirm('Form submitted successfully! Would you like to clear the form for the next submission?')) {
                 clearForm(type);
             }
-            
         } catch(error) {
             clearTimeout(timeoutId);
             hideLoading();
             console.error("Error:", error);
             showToast('⚠️ Connection error - saved locally only. Will retry later.', true);
             
-            // Still save locally
             records.unshift(record);
             localStorage.setItem('h5r_records_' + currentUser.email, JSON.stringify(records));
             updateRecordsDisplay();
@@ -775,7 +758,6 @@
             document.getElementById('pl-recovery').value = '';
         }
         
-        // Reset date to today
         const today = new Date().toISOString().split('T')[0];
         document.querySelectorAll(`#${type} input[type="date"]`).forEach(el => el.value = today);
     }
@@ -850,20 +832,8 @@
         setTimeout(() => toast.style.display = 'none', 3000);
     }
     
-    function showSecurityInfo() {
-        alert(`🔒 H5R Security Information\n\n` +
-              `• Authentication: Google Sign-In (OAuth 2.0)\n` +
-              `• Authorized Domains: @h5r.ltd only\n` +
-              `• Data Encryption: TLS 1.2+ in transit\n` +
-              `• Data Storage: Google Workspace (SOC2 compliant)\n` +
-              `• Audit Trail: All submissions timestamped and logged by user\n` +
-              `• Access Control: Whitelist of authorized emails\n` +
-              `• Backup: Automatic local storage fallback\n\n` +
-              `For security concerns, contact IT department.`);
-    }
-    
     window.onload = function() {
-        console.log("H5R Plant Operations Ready - Secure Version");
+        console.log("H5R Plant Operations Ready");
     };
 </script>
 </body>
